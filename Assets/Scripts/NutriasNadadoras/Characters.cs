@@ -8,6 +8,8 @@ internal class Characters : MonoBehaviour
     [SerializeField] private int countOfNutrias;
     [SerializeField] private SelectorOfNutria selectorOfNutrias;
     [SerializeField] private float radiusOfPosition;
+    [SerializeField] private ValidationOfVictory validationOfVictory;
+    [SerializeField] private ValidatorOfClick validatorOfClick;
     
     private List<Nutria> nutrias = new();
     public void Configure()
@@ -19,6 +21,13 @@ internal class Characters : MonoBehaviour
             position.y = pointToSpawn.transform.position.y;
             var nutria = Instantiate(nutriaPrefab, position, Quaternion.identity).GetComponent<Nutria>();
             nutria.Configure();
+            nutria.onTouchFinalEarth += tierraFirme =>
+            {
+                //Can select the final earth
+                Debug.Log("Can select the final earth");
+                validationOfVictory.AddFinalDestiny(tierraFirme);
+                validatorOfClick.CanSelectFinalEarth();
+            };
             nutrias.Add(nutria);
         }
         selectorOfNutrias.Configure();

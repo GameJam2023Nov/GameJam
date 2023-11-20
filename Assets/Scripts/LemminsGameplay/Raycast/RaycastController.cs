@@ -18,11 +18,6 @@ public class RaycastController : MonoBehaviour
     }
     public void Click(InputAction.CallbackContext context)
     {
-        Debug.Log($"canceled {context.canceled}" );
-        Debug.Log($"performed {context.performed}" );
-        Debug.Log($"started {context.started}" );
-        Debug.Log($"phase {context.phase}" );
-        Debug.Log($"time {context.time}" );
         Ray ray = Camera.main.ScreenPointToRay(_mousePosition);
         if (context.started)
         {
