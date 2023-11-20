@@ -45,7 +45,7 @@ public class RulesOfGame : MonoBehaviour
             //Configurar todos los componentes para empezar
             map.Configure();
             characters.Configure();
-        }).Add(() =>
+        }).Add(5f).Add(() =>
         {
             _start.Play();
         });

@@ -46,6 +46,6 @@ public abstract class Nutria : MonoBehaviour
 
     public void AddForce(Vector3 direction)
     {
-        transform.position += direction * Time.deltaTime;
+        //transform.position += direction * Time.deltaTime;
     }
 }

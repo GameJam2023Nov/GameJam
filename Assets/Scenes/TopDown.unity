@@ -348,7 +348,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -401,7 +401,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 309376582}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -4.9, z: 0}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -769,7 +769,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 13
+  m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &433830033
 GameObject:
@@ -928,7 +928,7 @@ Transform:
   m_Children:
   - {fileID: 469367848}
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 16
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &469367844
 GameObject:
@@ -1158,9 +1158,9 @@ MonoBehaviour:
   nutriaPrefab: {fileID: 5394974724809210031, guid: 7526f4c2ca7b9b0459f5a1c7a6d6271f,
     type: 3}
   pointToSpawn: {fileID: 2050066294}
-  countOfNutrias: 1
+  countOfNutrias: 10
   selectorOfNutrias: {fileID: 1799928293}
-  radiusOfPosition: 1
+  radiusOfPosition: 3
 --- !u!4 &808547730
 Transform:
   m_ObjectHideFlags: 0
@@ -1174,7 +1174,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 11
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &816100548
 GameObject:
@@ -1206,12 +1206,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cursor: {fileID: 1199017134}
-  offset: {x: 21, y: -21}
+  offset: {x: 0, y: 0}
   cursorNormal: {fileID: 21300000, guid: 19d91c2c0f4ed794b8975757237a3ddf, type: 3}
   cursorMove: {fileID: 21300000, guid: c507fa3287dc4db45ac034c129d96fc3, type: 3}
+  cursorRelease: {fileID: 21300000, guid: 577c9b74e3f505e418d4e7f26dfa3247, type: 3}
   materialNormal: {fileID: 2100000, guid: 6f38f64523ef7534280e3a95ae53d333, type: 2}
   materialMoveGood: {fileID: 2100000, guid: 4d8532c085bf7144c89e47f872e4488b, type: 2}
   materialMoveBad: {fileID: 2100000, guid: 2071ab85d87f2ba478641a8a7983972b, type: 2}
+  materialToRelease: {fileID: 2100000, guid: 16be5faf156e9a6439f89b16705a8738, type: 2}
 --- !u!4 &816100550
 Transform:
   m_ObjectHideFlags: 0
@@ -1226,7 +1228,7 @@ Transform:
   m_Children:
   - {fileID: 1879231531}
   m_Father: {fileID: 0}
-  m_RootOrder: 16
+  m_RootOrder: 15
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &911898765
 GameObject:
@@ -1449,7 +1451,7 @@ Transform:
   m_Children:
   - {fileID: 911898766}
   m_Father: {fileID: 0}
-  m_RootOrder: 14
+  m_RootOrder: 13
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &965830406
 MonoBehaviour:
@@ -1598,7 +1600,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1199017134
 MonoBehaviour:
@@ -1613,7 +1615,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 0.94832885, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2014,7 +2016,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 12
+  m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1799928293
 MonoBehaviour:
@@ -2181,7 +2183,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   petroleo: {fileID: 433830033}
-  speed: 5
+  speed: 1
 --- !u!4 &1892855780
 Transform:
   m_ObjectHideFlags: 0
@@ -2195,7 +2197,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1994788344
 GameObject:
@@ -2345,5 +2347,5 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 15
+  m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

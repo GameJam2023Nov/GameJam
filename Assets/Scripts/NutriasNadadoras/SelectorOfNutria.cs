@@ -27,6 +27,23 @@ public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
         
     }
 
+    private void FixedUpdate()
+    {
+        if(!_canSelect) return;
+        var ray = _camera.ScreenPointToRay(_inputCustom.GetTouchPosition());
+        if (Physics.Raycast(ray, out var hit, Mathf.Infinity, layerMaskNutria) && hit.collider.TryGetComponent<ColliderNutria>(out var colliderNutria))
+        {
+            if (!colliderNutria.Nutria.CanSelected())
+            {
+                ServiceLocator.Instance.GetService<ICursorService>().StateOfRelease(true);
+            }
+            else
+            {
+                ServiceLocator.Instance.GetService<ICursorService>().StateOfRelease(false);
+            }
+        }
+    }
+
     private void SelectNutria()
     {
         if(!_canSelect) return;
@@ -39,6 +56,7 @@ public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
                 {
                     return;
                 }
+
                 ServiceLocator.Instance.GetService<ICursorService>().StateOfCursor(true);
                 validatorOfClick.Evaluate();
                 _selectedNutria = colliderNutria.Nutria;

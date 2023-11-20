@@ -8,17 +8,17 @@ public class ForceOfRiver : MonoBehaviour
     private List<Nutria> _nutrias = new();
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.layer == LayerMask.NameToLayer("Nutria"))
+        if (other.gameObject.layer == LayerMask.NameToLayer("Nutria") && other.gameObject.CompareTag("Nutria"))
         {
-            _nutrias.Add(other.gameObject.GetComponent<Nutria>());
+            _nutrias.Add(other.gameObject.GetComponent<ColliderNutria>().Nutria);
         }
     }
     
     private void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.layer == LayerMask.NameToLayer("Nutria"))
+        if (other.gameObject.layer == LayerMask.NameToLayer("Nutria") && other.gameObject.CompareTag("Nutria"))
         {
-            _nutrias.Remove(other.gameObject.GetComponent<Nutria>());
+            _nutrias.Remove(other.gameObject.GetComponent<ColliderNutria>().Nutria);
         }
     }
 

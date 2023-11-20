@@ -110,8 +110,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: add6d58ae2764842940333c8b56a6dce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 1
+  speed: 4
   toleranceDistance: 0.6
+  _pointToAnchor: {x: 0, y: 0, z: 0}
 --- !u!1 &7852624195096568588
 GameObject:
   m_ObjectHideFlags: 0
@@ -125,7 +126,7 @@ GameObject:
   - component: {fileID: 5357349309659139636}
   m_Layer: 11
   m_Name: SelecctionPoint
-  m_TagString: Untagged
+  m_TagString: Nutria
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
