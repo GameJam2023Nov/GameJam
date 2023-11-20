@@ -1,7 +1,7 @@
 using SL;
 using UnityEngine;
 
-public class RulesOfGame : MonoBehaviour
+public class RulesOfGame : ServiceCustom, IRulesOfGame
 {
     [SerializeField] private Map map;
     [SerializeField] private Characters characters;
@@ -100,5 +100,26 @@ public class RulesOfGame : MonoBehaviour
             }
         });
         _beforeToStart.Play();
+    }
+
+    protected override bool Validation()
+    {
+        return FindObjectsOfType<RulesOfGame>().Length > 1;
+    }
+
+    protected override void RegisterService()
+    {
+        ServiceLocator.Instance.RegisterService<IRulesOfGame>(this);
+    }
+
+    protected override void RemoveService()
+    {
+        ServiceLocator.Instance.RemoveService<IRulesOfGame>();
+    }
+
+    public void Win()
+    {
+        _endGame = true;
+        _isWin = true;
     }
 }

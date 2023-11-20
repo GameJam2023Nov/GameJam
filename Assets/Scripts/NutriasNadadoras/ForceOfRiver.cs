@@ -26,7 +26,7 @@ public class ForceOfRiver : MonoBehaviour
     {
         foreach (var nutria in _nutrias)
         {
-            nutria.AddForce(Vector3.forward * force);
+            nutria.AddForce(Vector3.forward * (force * Time.fixedDeltaTime));
         }
     }
 }

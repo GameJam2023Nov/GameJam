@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
 {
+    [SerializeField] private ValidationOfVictory validationOfVictory;
     [SerializeField] private LayerMask layerMaskNutria, layerMaskMap;
     [SerializeField] private Nutria _selectedNutria;
     [SerializeField] private ValidatorOfClick validatorOfClick;
@@ -36,11 +37,12 @@ public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
             if (!colliderNutria.Nutria.CanSelected())
             {
                 ServiceLocator.Instance.GetService<ICursorService>().StateOfRelease(true);
+                return;
             }
-            else
-            {
-                ServiceLocator.Instance.GetService<ICursorService>().StateOfRelease(false);
-            }
+        }
+        if(Physics.Raycast(ray, out var hit2, Mathf.Infinity, layerMaskMap))
+        {
+            ServiceLocator.Instance.GetService<ICursorService>().StateOfCursor(false);
         }
     }
 
@@ -54,9 +56,13 @@ public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
             {
                 if(!colliderNutria.Nutria.CanSelected())
                 {
+                    if (validatorOfClick.CanRelease())
+                    {
+                        validationOfVictory.SendNutriaToDestiny(colliderNutria.Nutria, hit.point, validatorOfClick.GetAnchorPoint());
+                    }
+                    Debug.Log("No se puede seleccionar y debe ser liberado");
                     return;
                 }
-
                 ServiceLocator.Instance.GetService<ICursorService>().StateOfCursor(true);
                 validatorOfClick.Evaluate();
                 _selectedNutria = colliderNutria.Nutria;
@@ -67,10 +73,11 @@ public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
             validatorOfClick.EndEvaluate();
             if (Physics.Raycast(ray, out var hit, Mathf.Infinity, layerMaskMap) && validatorOfClick.CanMove())
             {
-                _selectedNutria.GoTo(hit.point, validatorOfClick.GetAnchorPoint());
+                validationOfVictory.SendNutriaToDestiny(_selectedNutria, hit.point, validatorOfClick.GetAnchorPoint());
             }
             _selectedNutria = null;
             ServiceLocator.Instance.GetService<ICursorService>().StateOfCursor(false);
         }
+        
     }
 }
