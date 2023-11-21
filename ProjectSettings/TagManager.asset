@@ -3,7 +3,11 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Tierra
+  - Nutria
+  - TierraFinal
+  - Agua
   layers:
   - Default
   - TransparentFX
@@ -15,9 +19,9 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
-  - 
+  - pointToCreatePoint
+  - Nutria
+  - Petroleo
   - 
   - 
   - 
