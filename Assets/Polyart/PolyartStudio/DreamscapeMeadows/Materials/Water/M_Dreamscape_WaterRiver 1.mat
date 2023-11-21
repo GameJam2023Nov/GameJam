@@ -24,6 +24,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: b166ccd7e871a3948ac1028410a7fe76, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _FlowMap:
+        m_Texture: {fileID: 2800000, guid: 1074a7d8c62c6a345b2a8bd8d7a2c52f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _ReflectionNormal:
         m_Texture: {fileID: 2800000, guid: 70546bb8eb214354e83b7f57e5a4821c, type: 3}
         m_Scale: {x: 3, y: 3}
@@ -32,9 +36,25 @@ Material:
         m_Texture: {fileID: 2800000, guid: b13f818c839d4364ca8204665e0e5afc, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Texture0:
+        m_Texture: {fileID: 2800000, guid: 1b7476c8f5d1e2d498e205b1f9b8803e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TextureSample4:
+        m_Texture: {fileID: 2800000, guid: 44bb8185637311f498503a2f9420acc5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Uvs:
+        m_Texture: {fileID: 2800000, guid: 407b2af517bb6d0448728e6cca271457, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _WaveNormal:
         m_Texture: {fileID: 2800000, guid: f4d6674ab39631f47b9b78c8e92aee48, type: 3}
         m_Scale: {x: 2, y: 2}
+        m_Offset: {x: 0, y: 0}
+    - _flowmap_outward_counterclockwise:
+        m_Texture: {fileID: 2800000, guid: 1074a7d8c62c6a345b2a8bd8d7a2c52f, type: 3}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _texcoord:
         m_Texture: {fileID: 0}
@@ -58,10 +78,14 @@ Material:
     - _ColorDepthFade: 2.46
     - _DisplaceStrength: 0.174
     - _EnvironmentReflections: 1
+    - _FScale: 50
+    - _FlowSpeed: 1
+    - _Flowoverrite: 0
     - _FoamCutoff: 0.74
     - _FoamDepthFade: 1.31
     - _FoamScale: 15.94
     - _FoamSpeed: 1
+    - _Oil: 0
     - _Opacity: 1
     - _QueueControl: 0
     - _QueueOffset: 0
@@ -69,6 +93,7 @@ Material:
     - _ReflectionsIntensity: 0.041
     - _RefractionDepth: 3.36
     - _RefractionStrength: 0
+    - _Size: 1
     - _Smoothness: 1
     - _SpecularHighlights: 1
     - _TransAmbient: 0.1
@@ -76,7 +101,7 @@ Material:
     - _TransNormal: 0.5
     - _TransScattering: 2
     - _TransShadow: 0.5
-    - _TransStrength: 1
+    - _TransStrength: 0
     - _TurbulenceDistortionIntensity: 4.46
     - _TurbulenceScale: 3.54
     - _TurbulenceTiling: 20
