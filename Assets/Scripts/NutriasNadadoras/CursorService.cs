@@ -6,8 +6,8 @@ public class CursorService : ServiceCustom, ICursorService
 {
     [SerializeField] private Image cursor;
     [SerializeField] private Vector2 offset;
-    [SerializeField] private Sprite cursorNormal, cursorMove;
-    [SerializeField] private Material materialNormal, materialMoveGood, materialMoveBad;
+    [SerializeField] private Sprite cursorNormal, cursorMove, cursorRelease;
+    [SerializeField] private Material materialNormal, materialMoveGood, materialMoveBad, materialToRelease;
     protected override bool Validation()
     {
         return FindObjectsOfType<CursorService>().Length > 1;
@@ -41,6 +41,21 @@ public class CursorService : ServiceCustom, ICursorService
     public void StateOfCursorEvaluator(bool isGood)
     {
         cursor.color = isGood ? materialMoveGood.color : materialMoveBad.color;
+    }
+
+    public void StateOfRelease(bool isRelease)
+    {
+        if (isRelease)
+        {
+            cursor.sprite = cursorRelease;
+            cursor.color = materialToRelease.color;
+        }
+        else
+        {
+            cursor.sprite = cursorNormal;
+            cursor.color = materialNormal.color;
+            
+        }
     }
 
     private void Update()

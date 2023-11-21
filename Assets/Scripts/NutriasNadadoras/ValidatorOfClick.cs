@@ -15,6 +15,7 @@ public class ValidatorOfClick : MonoBehaviour
     private ISelectorOfNutria _selectorOfNutria;
     private IInputCustom _inputCustom;
     private Vector3 _anchorPoint;
+    private bool _canSelectFinalEarth;
 
     public void Configure(ISelectorOfNutria selectorOfNutria, IInputCustom inputCustom)
     {
@@ -22,6 +23,11 @@ public class ValidatorOfClick : MonoBehaviour
         _selectorOfNutria = selectorOfNutria;
     }
 
+    public void CanSelectFinalEarth()
+    {
+        _canSelectFinalEarth = true;
+    }
+    
     public void Evaluate()
     {
         _canEvaluate = true;
@@ -68,7 +74,6 @@ public class ValidatorOfClick : MonoBehaviour
             {
                 if (hit.collider.gameObject.CompareTag("Tierra"))
                 {
-                    Debug.Log("Tierra");
                     CanMoveP();
                     _anchorPoint = hit.point;
                     return;
@@ -76,10 +81,20 @@ public class ValidatorOfClick : MonoBehaviour
                 
                 if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Nutria"))
                 {
-                    Debug.Log("Nutria");
                     CanMoveP();
                     _anchorPoint = hit.point;
                     return;
+                }
+
+                if (_canSelectFinalEarth)
+                {
+                    if (hit.collider.gameObject.CompareTag("TierraFinal"))
+                    {
+                        Debug.Log("Tierra Final");
+                        CanMoveP();
+                        _anchorPoint = hit.point;
+                        return;
+                    }
                 }
             }
         }
@@ -96,5 +111,10 @@ public class ValidatorOfClick : MonoBehaviour
     public Vector3 GetAnchorPoint()
     {
         return _anchorPoint;
+    }
+
+    public bool CanRelease()
+    {
+        return _canSelectFinalEarth;
     }
 }
