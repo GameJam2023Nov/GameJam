@@ -86,6 +86,10 @@ public abstract class Nutria : MonoBehaviour
         {
             speed *= 1.5f;
         }
+        if (other.gameObject.CompareTag("TierraFinal"))
+        {
+            onTouchFinalEarth?.Invoke(other.gameObject);
+        }
     }
 
     private void OnTriggerExit(Collider other)
