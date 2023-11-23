@@ -1,4 +1,4 @@
-// Made with Amplify Shader Editor v1.9.1.5
+// Made with Amplify Shader Editor v1.9.2
 // Available at the Unity Asset Store - http://u3d.as/y3X 
 Shader "Polyart/Dreamscape/URP/Tree Wind Custom Lighting"
 {
@@ -6,7 +6,7 @@ Shader "Polyart/Dreamscape/URP/Tree Wind Custom Lighting"
 	{
 		[HideInInspector] _EmissionColor("Emission Color", Color) = (1,1,1,1)
 		[HideInInspector] _AlphaCutoff("Alpha Cutoff ", Range(0, 1)) = 0.5
-		[ASEBegin][Header(Foliage)][Header(.)][SingleLineTexture]_FoliageColorMap("Foliage Color Map", 2D) = "white" {}
+		[Header(Foliage)][Header(.)][SingleLineTexture]_FoliageColorMap("Foliage Color Map", 2D) = "white" {}
 		_MaskClipValue("Mask Clip Value", Range( 0 , 1)) = 0.5
 		_FoliageSize("Foliage Size", Float) = 100
 		_FoliageColorTop("Foliage Color Top", Color) = (1,1,1,0)
@@ -28,7 +28,7 @@ Shader "Polyart/Dreamscape/URP/Tree Wind Custom Lighting"
 		_DirectLightInt("Direct Light Int", Range( 1 , 10)) = 1
 		_IndirectLightningIntensity("Indirect Lightning Intensity", Range( 1 , 10)) = 1
 		_SubsurfaceIntensity("Subsurface Intensity", Range( 0 , 100)) = 10
-		[ASEEnd]_SubsurfaceFadeDistance("Subsurface Fade Distance", Float) = 200
+		_SubsurfaceFadeDistance("Subsurface Fade Distance", Float) = 200
 
 
 		//_TessPhongStrength( "Tess Phong Strength", Range( 0, 1 ) ) = 0.5
@@ -188,17 +188,14 @@ Shader "Polyart/Dreamscape/URP/Tree Wind Custom Lighting"
 			HLSLPROGRAM
 
 			#pragma multi_compile_instancing
-			#pragma multi_compile_fog
-			#define ASE_FOG 1
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma multi_compile _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 
 			#pragma multi_compile _ LIGHTMAP_ON
 			#pragma multi_compile _ DIRLIGHTMAP_COMBINED
-			#pragma shader_feature _ _SAMPLE_GI
 			#pragma multi_compile _ DEBUG_DISPLAY
 
 			#pragma vertex vert
@@ -567,12 +564,13 @@ Shader "Polyart/Dreamscape/URP/Tree Wind Custom Lighting"
 				float clampResult9_g95 = clamp( pow( ( distance( WorldPosition , _WorldSpaceCameraPos ) / _SubsurfaceFadeDistance ) , 2.0 ) , 0.0 , 1.0 );
 				float lerpResult402 = lerp( _SubsurfaceIntensity , 0.0 , clampResult9_g95);
 				float4 vSubsurface322 = saturate( ( ( (( dotResult11_g90 * -1.0 )*1.0 + -0.25) * ( ( ( (dotResult4_g90*1.0 + 1.0) * ase_lightAtten ) * _MainLightColor * vFoliageColor172 ) * 0.235 ) ) * lerpResult402 ) );
+				float4 clampResult405 = clamp( ( ( vFoliageColor172 * float4( FlatResult29_g92 , 0.0 ) ) + ( vIndirectLightning310 + DirectLight312 + vSubsurface322 ) ) , float4( 0,0,0,0 ) , float4( 1,1,1,0 ) );
 				
 				float vFoliageOpacity173 = tex2DNode124.a;
 				
 				float3 BakedAlbedo = 0;
 				float3 BakedEmission = 0;
-				float3 Color = ( ( vFoliageColor172 * float4( FlatResult29_g92 , 0.0 ) ) + ( vIndirectLightning310 + DirectLight312 + vSubsurface322 ) ).rgb;
+				float3 Color = clampResult405.rgb;
 				float Alpha = vFoliageOpacity173;
 				float AlphaClipThreshold = _MaskClipValue;
 				float AlphaClipThresholdShadow = 0.5;
@@ -617,10 +615,8 @@ Shader "Polyart/Dreamscape/URP/Tree Wind Custom Lighting"
 			HLSLPROGRAM
 
 			#pragma multi_compile_instancing
-			#pragma multi_compile_fog
-			#define ASE_FOG 1
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma vertex vert
@@ -960,10 +956,8 @@ Shader "Polyart/Dreamscape/URP/Tree Wind Custom Lighting"
 			HLSLPROGRAM
 
 			#pragma multi_compile_instancing
-			#pragma multi_compile_fog
-			#define ASE_FOG 1
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma vertex vert
@@ -1264,602 +1258,6 @@ Shader "Polyart/Dreamscape/URP/Tree Wind Custom Lighting"
 		Pass
 		{
 			
-            Name "SceneSelectionPass"
-            Tags { "LightMode"="SceneSelectionPass" }
-
-			Cull Off
-
-			HLSLPROGRAM
-
-			#pragma multi_compile_instancing
-			#pragma multi_compile_fog
-			#define ASE_FOG 1
-			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
-
-
-			#pragma vertex vert
-			#pragma fragment frag
-
-			#define ATTRIBUTES_NEED_NORMAL
-			#define ATTRIBUTES_NEED_TANGENT
-			#define SHADERPASS SHADERPASS_DEPTHONLY
-
-			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
-			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
-			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
-			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
-
-			#define ASE_NEEDS_VERT_NORMAL
-			#define ASE_NEEDS_VERT_POSITION
-			#pragma shader_feature_local _USEGLOBALWINDSETTINGS_ON
-			#pragma shader_feature_local _USESGLOBALWINDSETTINGS_ON
-
-
-			struct VertexInput
-			{
-				float4 vertex : POSITION;
-				float3 ase_normal : NORMAL;
-				float4 ase_texcoord : TEXCOORD0;
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-			};
-
-			struct VertexOutput
-			{
-				float4 clipPos : SV_POSITION;
-				float4 ase_texcoord : TEXCOORD0;
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-				UNITY_VERTEX_OUTPUT_STEREO
-			};
-
-			CBUFFER_START(UnityPerMaterial)
-			float4 _FoliageColorTop;
-			float4 _FoliageColorBottom;
-			float2 _WindSwayDirection;
-			float _SubsurfaceIntensity;
-			float _DirectLightInt;
-			float _LightOffset;
-			float _IndirectLightningIntensity;
-			float _FoliageSize;
-			float _GradientFallout;
-			float _WindScrollSpeed;
-			float _SubsurfaceFadeDistance;
-			float _WIndSwayFrequency;
-			float _WIndSwayIntensity;
-			float _WindOffsetIntensity;
-			float _WindJitterSpeed;
-			float _WindRustleSize;
-			float _GradientOffset;
-			float _MaskClipValue;
-			#ifdef ASE_TESSELLATION
-				float _TessPhongStrength;
-				float _TessValue;
-				float _TessMin;
-				float _TessMax;
-				float _TessEdgeLength;
-				float _TessMaxDisp;
-			#endif
-			CBUFFER_END
-
-			sampler2D _NoiseTexture;
-			float varWindRustleScrollSpeed;
-			float Float0;
-			float varWindSwayIntensity;
-			float2 varWindDirection;
-			float varWindSwayFrequency;
-			sampler2D _FoliageColorMap;
-
-
-			
-			int _ObjectId;
-			int _PassValue;
-
-			struct SurfaceDescription
-			{
-				float Alpha;
-				float AlphaClipThreshold;
-			};
-
-			VertexOutput VertexFunction(VertexInput v  )
-			{
-				VertexOutput o;
-				ZERO_INITIALIZE(VertexOutput, o);
-
-				UNITY_SETUP_INSTANCE_ID(v);
-				UNITY_TRANSFER_INSTANCE_ID(v, o);
-				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-
-				float temp_output_18_0_g87 = _WindScrollSpeed;
-				#ifdef _USEGLOBALWINDSETTINGS_ON
-				float staticSwitch25_g87 = ( temp_output_18_0_g87 * varWindRustleScrollSpeed );
-				#else
-				float staticSwitch25_g87 = temp_output_18_0_g87;
-				#endif
-				float3 ase_worldPos = TransformObjectToWorld( (v.vertex).xyz );
-				float2 appendResult4_g87 = (float2(ase_worldPos.x , ase_worldPos.z));
-				float2 temp_output_7_0_g87 = ( appendResult4_g87 * _WindRustleSize );
-				float2 panner9_g87 = ( ( staticSwitch25_g87 * _TimeParameters.x ) * float2( 1,1 ) + temp_output_7_0_g87);
-				float temp_output_19_0_g87 = _WindJitterSpeed;
-				#ifdef _USEGLOBALWINDSETTINGS_ON
-				float staticSwitch26_g87 = ( temp_output_19_0_g87 * Float0 );
-				#else
-				float staticSwitch26_g87 = temp_output_19_0_g87;
-				#endif
-				float2 panner13_g87 = ( ( _TimeParameters.x * staticSwitch26_g87 ) * float2( 1,1 ) + ( temp_output_7_0_g87 * float2( 2,2 ) ));
-				float4 lerpResult30_g87 = lerp( float4( float3(0,0,0) , 0.0 ) , ( pow( tex2Dlod( _NoiseTexture, float4( panner9_g87, 0, 0.0) ) , 1.0 ) * tex2Dlod( _NoiseTexture, float4( panner13_g87, 0, 0.0) ) ) , _WindOffsetIntensity);
-				float temp_output_27_0_g88 = _WIndSwayIntensity;
-				#ifdef _USESGLOBALWINDSETTINGS_ON
-				float staticSwitch33_g88 = ( temp_output_27_0_g88 * varWindSwayIntensity );
-				#else
-				float staticSwitch33_g88 = temp_output_27_0_g88;
-				#endif
-				float temp_output_14_0_g88 = ( ( v.vertex.xyz.y * ( staticSwitch33_g88 / 100.0 ) ) + 1.0 );
-				float temp_output_16_0_g88 = ( temp_output_14_0_g88 * temp_output_14_0_g88 );
-				#ifdef _USESGLOBALWINDSETTINGS_ON
-				float2 staticSwitch41_g88 = varWindDirection;
-				#else
-				float2 staticSwitch41_g88 = _WindSwayDirection;
-				#endif
-				float2 clampResult10_g88 = clamp( staticSwitch41_g88 , float2( -1,-1 ) , float2( 1,1 ) );
-				float4 transform1_g88 = mul(GetObjectToWorldMatrix(),float4( 0,0,0,1 ));
-				float4 appendResult3_g88 = (float4(transform1_g88.x , 0.0 , transform1_g88.z , 0.0));
-				float dotResult4_g89 = dot( appendResult3_g88.xy , float2( 12.9898,78.233 ) );
-				float lerpResult10_g89 = lerp( 1.0 , 1.01 , frac( ( sin( dotResult4_g89 ) * 43758.55 ) ));
-				float mulTime9_g88 = _TimeParameters.x * lerpResult10_g89;
-				float temp_output_29_0_g88 = _WIndSwayFrequency;
-				#ifdef _USESGLOBALWINDSETTINGS_ON
-				float staticSwitch34_g88 = ( temp_output_29_0_g88 * varWindSwayFrequency );
-				#else
-				float staticSwitch34_g88 = temp_output_29_0_g88;
-				#endif
-				float2 break26_g88 = ( ( ( temp_output_16_0_g88 * temp_output_16_0_g88 ) - temp_output_16_0_g88 ) * ( ( ( staticSwitch41_g88 * float2( 4,4 ) ) + sin( ( ( clampResult10_g88 * mulTime9_g88 ) * staticSwitch34_g88 ) ) ) / float2( 4,4 ) ) );
-				float4 appendResult25_g88 = (float4(break26_g88.x , 0.0 , break26_g88.y , 0.0));
-				float4 temp_output_246_0 = appendResult25_g88;
-				#ifdef _TRUNKMATERIAL_ON
-				float4 staticSwitch100 = temp_output_246_0;
-				#else
-				float4 staticSwitch100 = ( ( float4( v.ase_normal , 0.0 ) * lerpResult30_g87 ) + temp_output_246_0 );
-				#endif
-				float4 vWind116 = staticSwitch100;
-				
-				o.ase_texcoord.xy = v.ase_texcoord.xy;
-				
-				//setting value to unused interpolator channels and avoid initialization warnings
-				o.ase_texcoord.zw = 0;
-
-				#ifdef ASE_ABSOLUTE_VERTEX_POS
-					float3 defaultVertexValue = v.vertex.xyz;
-				#else
-					float3 defaultVertexValue = float3(0, 0, 0);
-				#endif
-
-				float3 vertexValue = vWind116.rgb;
-
-				#ifdef ASE_ABSOLUTE_VERTEX_POS
-					v.vertex.xyz = vertexValue;
-				#else
-					v.vertex.xyz += vertexValue;
-				#endif
-
-				v.ase_normal = v.ase_normal;
-
-				float3 positionWS = TransformObjectToWorld( v.vertex.xyz );
-				o.clipPos = TransformWorldToHClip(positionWS);
-
-				return o;
-			}
-
-			#if defined(ASE_TESSELLATION)
-			struct VertexControl
-			{
-				float4 vertex : INTERNALTESSPOS;
-				float3 ase_normal : NORMAL;
-				float4 ase_texcoord : TEXCOORD0;
-
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-			};
-
-			struct TessellationFactors
-			{
-				float edge[3] : SV_TessFactor;
-				float inside : SV_InsideTessFactor;
-			};
-
-			VertexControl vert ( VertexInput v )
-			{
-				VertexControl o;
-				UNITY_SETUP_INSTANCE_ID(v);
-				UNITY_TRANSFER_INSTANCE_ID(v, o);
-				o.vertex = v.vertex;
-				o.ase_normal = v.ase_normal;
-				o.ase_texcoord = v.ase_texcoord;
-				return o;
-			}
-
-			TessellationFactors TessellationFunction (InputPatch<VertexControl,3> v)
-			{
-				TessellationFactors o;
-				float4 tf = 1;
-				float tessValue = _TessValue; float tessMin = _TessMin; float tessMax = _TessMax;
-				float edgeLength = _TessEdgeLength; float tessMaxDisp = _TessMaxDisp;
-				#if defined(ASE_FIXED_TESSELLATION)
-				tf = FixedTess( tessValue );
-				#elif defined(ASE_DISTANCE_TESSELLATION)
-				tf = DistanceBasedTess(v[0].vertex, v[1].vertex, v[2].vertex, tessValue, tessMin, tessMax, GetObjectToWorldMatrix(), _WorldSpaceCameraPos );
-				#elif defined(ASE_LENGTH_TESSELLATION)
-				tf = EdgeLengthBasedTess(v[0].vertex, v[1].vertex, v[2].vertex, edgeLength, GetObjectToWorldMatrix(), _WorldSpaceCameraPos, _ScreenParams );
-				#elif defined(ASE_LENGTH_CULL_TESSELLATION)
-				tf = EdgeLengthBasedTessCull(v[0].vertex, v[1].vertex, v[2].vertex, edgeLength, tessMaxDisp, GetObjectToWorldMatrix(), _WorldSpaceCameraPos, _ScreenParams, unity_CameraWorldClipPlanes );
-				#endif
-				o.edge[0] = tf.x; o.edge[1] = tf.y; o.edge[2] = tf.z; o.inside = tf.w;
-				return o;
-			}
-
-			[domain("tri")]
-			[partitioning("fractional_odd")]
-			[outputtopology("triangle_cw")]
-			[patchconstantfunc("TessellationFunction")]
-			[outputcontrolpoints(3)]
-			VertexControl HullFunction(InputPatch<VertexControl, 3> patch, uint id : SV_OutputControlPointID)
-			{
-				return patch[id];
-			}
-
-			[domain("tri")]
-			VertexOutput DomainFunction(TessellationFactors factors, OutputPatch<VertexControl, 3> patch, float3 bary : SV_DomainLocation)
-			{
-				VertexInput o = (VertexInput) 0;
-				o.vertex = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex * bary.z;
-				o.ase_normal = patch[0].ase_normal * bary.x + patch[1].ase_normal * bary.y + patch[2].ase_normal * bary.z;
-				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
-				#if defined(ASE_PHONG_TESSELLATION)
-				float3 pp[3];
-				for (int i = 0; i < 3; ++i)
-					pp[i] = o.vertex.xyz - patch[i].ase_normal * (dot(o.vertex.xyz, patch[i].ase_normal) - dot(patch[i].vertex.xyz, patch[i].ase_normal));
-				float phongStrength = _TessPhongStrength;
-				o.vertex.xyz = phongStrength * (pp[0]*bary.x + pp[1]*bary.y + pp[2]*bary.z) + (1.0f-phongStrength) * o.vertex.xyz;
-				#endif
-				UNITY_TRANSFER_INSTANCE_ID(patch[0], o);
-				return VertexFunction(o);
-			}
-			#else
-			VertexOutput vert ( VertexInput v )
-			{
-				return VertexFunction( v );
-			}
-			#endif
-
-			half4 frag(VertexOutput IN ) : SV_TARGET
-			{
-				SurfaceDescription surfaceDescription = (SurfaceDescription)0;
-
-				float temp_output_235_0 = ( _FoliageSize / 100.0 );
-				float2 appendResult234 = (float2(temp_output_235_0 , temp_output_235_0));
-				float2 texCoord236 = IN.ase_texcoord.xy * appendResult234 + float2( 0,0 );
-				float4 tex2DNode124 = tex2D( _FoliageColorMap, texCoord236 );
-				float vFoliageOpacity173 = tex2DNode124.a;
-				
-
-				surfaceDescription.Alpha = vFoliageOpacity173;
-				surfaceDescription.AlphaClipThreshold = _MaskClipValue;
-
-				#if _ALPHATEST_ON
-					float alphaClipThreshold = 0.01f;
-					#if ALPHA_CLIP_THRESHOLD
-						alphaClipThreshold = surfaceDescription.AlphaClipThreshold;
-					#endif
-					clip(surfaceDescription.Alpha - alphaClipThreshold);
-				#endif
-
-				half4 outColor = half4(_ObjectId, _PassValue, 1.0, 1.0);
-				return outColor;
-			}
-			ENDHLSL
-		}
-
-		
-		Pass
-		{
-			
-            Name "ScenePickingPass"
-            Tags { "LightMode"="Picking" }
-
-			HLSLPROGRAM
-
-			#pragma multi_compile_instancing
-			#pragma multi_compile_fog
-			#define ASE_FOG 1
-			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
-
-
-			#pragma vertex vert
-			#pragma fragment frag
-
-			#define ATTRIBUTES_NEED_NORMAL
-			#define ATTRIBUTES_NEED_TANGENT
-			#define SHADERPASS SHADERPASS_DEPTHONLY
-
-			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
-			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
-			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
-			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
-
-			#define ASE_NEEDS_VERT_NORMAL
-			#define ASE_NEEDS_VERT_POSITION
-			#pragma shader_feature_local _USEGLOBALWINDSETTINGS_ON
-			#pragma shader_feature_local _USESGLOBALWINDSETTINGS_ON
-
-
-			struct VertexInput
-			{
-				float4 vertex : POSITION;
-				float3 ase_normal : NORMAL;
-				float4 ase_texcoord : TEXCOORD0;
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-			};
-
-			struct VertexOutput
-			{
-				float4 clipPos : SV_POSITION;
-				float4 ase_texcoord : TEXCOORD0;
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-				UNITY_VERTEX_OUTPUT_STEREO
-			};
-
-			CBUFFER_START(UnityPerMaterial)
-			float4 _FoliageColorTop;
-			float4 _FoliageColorBottom;
-			float2 _WindSwayDirection;
-			float _SubsurfaceIntensity;
-			float _DirectLightInt;
-			float _LightOffset;
-			float _IndirectLightningIntensity;
-			float _FoliageSize;
-			float _GradientFallout;
-			float _WindScrollSpeed;
-			float _SubsurfaceFadeDistance;
-			float _WIndSwayFrequency;
-			float _WIndSwayIntensity;
-			float _WindOffsetIntensity;
-			float _WindJitterSpeed;
-			float _WindRustleSize;
-			float _GradientOffset;
-			float _MaskClipValue;
-			#ifdef ASE_TESSELLATION
-				float _TessPhongStrength;
-				float _TessValue;
-				float _TessMin;
-				float _TessMax;
-				float _TessEdgeLength;
-				float _TessMaxDisp;
-			#endif
-			CBUFFER_END
-
-			sampler2D _NoiseTexture;
-			float varWindRustleScrollSpeed;
-			float Float0;
-			float varWindSwayIntensity;
-			float2 varWindDirection;
-			float varWindSwayFrequency;
-			sampler2D _FoliageColorMap;
-
-
-			
-			float4 _SelectionID;
-
-
-			struct SurfaceDescription
-			{
-				float Alpha;
-				float AlphaClipThreshold;
-			};
-
-			VertexOutput VertexFunction(VertexInput v  )
-			{
-				VertexOutput o;
-				ZERO_INITIALIZE(VertexOutput, o);
-
-				UNITY_SETUP_INSTANCE_ID(v);
-				UNITY_TRANSFER_INSTANCE_ID(v, o);
-				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-
-				float temp_output_18_0_g87 = _WindScrollSpeed;
-				#ifdef _USEGLOBALWINDSETTINGS_ON
-				float staticSwitch25_g87 = ( temp_output_18_0_g87 * varWindRustleScrollSpeed );
-				#else
-				float staticSwitch25_g87 = temp_output_18_0_g87;
-				#endif
-				float3 ase_worldPos = TransformObjectToWorld( (v.vertex).xyz );
-				float2 appendResult4_g87 = (float2(ase_worldPos.x , ase_worldPos.z));
-				float2 temp_output_7_0_g87 = ( appendResult4_g87 * _WindRustleSize );
-				float2 panner9_g87 = ( ( staticSwitch25_g87 * _TimeParameters.x ) * float2( 1,1 ) + temp_output_7_0_g87);
-				float temp_output_19_0_g87 = _WindJitterSpeed;
-				#ifdef _USEGLOBALWINDSETTINGS_ON
-				float staticSwitch26_g87 = ( temp_output_19_0_g87 * Float0 );
-				#else
-				float staticSwitch26_g87 = temp_output_19_0_g87;
-				#endif
-				float2 panner13_g87 = ( ( _TimeParameters.x * staticSwitch26_g87 ) * float2( 1,1 ) + ( temp_output_7_0_g87 * float2( 2,2 ) ));
-				float4 lerpResult30_g87 = lerp( float4( float3(0,0,0) , 0.0 ) , ( pow( tex2Dlod( _NoiseTexture, float4( panner9_g87, 0, 0.0) ) , 1.0 ) * tex2Dlod( _NoiseTexture, float4( panner13_g87, 0, 0.0) ) ) , _WindOffsetIntensity);
-				float temp_output_27_0_g88 = _WIndSwayIntensity;
-				#ifdef _USESGLOBALWINDSETTINGS_ON
-				float staticSwitch33_g88 = ( temp_output_27_0_g88 * varWindSwayIntensity );
-				#else
-				float staticSwitch33_g88 = temp_output_27_0_g88;
-				#endif
-				float temp_output_14_0_g88 = ( ( v.vertex.xyz.y * ( staticSwitch33_g88 / 100.0 ) ) + 1.0 );
-				float temp_output_16_0_g88 = ( temp_output_14_0_g88 * temp_output_14_0_g88 );
-				#ifdef _USESGLOBALWINDSETTINGS_ON
-				float2 staticSwitch41_g88 = varWindDirection;
-				#else
-				float2 staticSwitch41_g88 = _WindSwayDirection;
-				#endif
-				float2 clampResult10_g88 = clamp( staticSwitch41_g88 , float2( -1,-1 ) , float2( 1,1 ) );
-				float4 transform1_g88 = mul(GetObjectToWorldMatrix(),float4( 0,0,0,1 ));
-				float4 appendResult3_g88 = (float4(transform1_g88.x , 0.0 , transform1_g88.z , 0.0));
-				float dotResult4_g89 = dot( appendResult3_g88.xy , float2( 12.9898,78.233 ) );
-				float lerpResult10_g89 = lerp( 1.0 , 1.01 , frac( ( sin( dotResult4_g89 ) * 43758.55 ) ));
-				float mulTime9_g88 = _TimeParameters.x * lerpResult10_g89;
-				float temp_output_29_0_g88 = _WIndSwayFrequency;
-				#ifdef _USESGLOBALWINDSETTINGS_ON
-				float staticSwitch34_g88 = ( temp_output_29_0_g88 * varWindSwayFrequency );
-				#else
-				float staticSwitch34_g88 = temp_output_29_0_g88;
-				#endif
-				float2 break26_g88 = ( ( ( temp_output_16_0_g88 * temp_output_16_0_g88 ) - temp_output_16_0_g88 ) * ( ( ( staticSwitch41_g88 * float2( 4,4 ) ) + sin( ( ( clampResult10_g88 * mulTime9_g88 ) * staticSwitch34_g88 ) ) ) / float2( 4,4 ) ) );
-				float4 appendResult25_g88 = (float4(break26_g88.x , 0.0 , break26_g88.y , 0.0));
-				float4 temp_output_246_0 = appendResult25_g88;
-				#ifdef _TRUNKMATERIAL_ON
-				float4 staticSwitch100 = temp_output_246_0;
-				#else
-				float4 staticSwitch100 = ( ( float4( v.ase_normal , 0.0 ) * lerpResult30_g87 ) + temp_output_246_0 );
-				#endif
-				float4 vWind116 = staticSwitch100;
-				
-				o.ase_texcoord.xy = v.ase_texcoord.xy;
-				
-				//setting value to unused interpolator channels and avoid initialization warnings
-				o.ase_texcoord.zw = 0;
-				#ifdef ASE_ABSOLUTE_VERTEX_POS
-					float3 defaultVertexValue = v.vertex.xyz;
-				#else
-					float3 defaultVertexValue = float3(0, 0, 0);
-				#endif
-				float3 vertexValue = vWind116.rgb;
-				#ifdef ASE_ABSOLUTE_VERTEX_POS
-					v.vertex.xyz = vertexValue;
-				#else
-					v.vertex.xyz += vertexValue;
-				#endif
-				v.ase_normal = v.ase_normal;
-
-				float3 positionWS = TransformObjectToWorld( v.vertex.xyz );
-				o.clipPos = TransformWorldToHClip(positionWS);
-				return o;
-			}
-
-			#if defined(ASE_TESSELLATION)
-			struct VertexControl
-			{
-				float4 vertex : INTERNALTESSPOS;
-				float3 ase_normal : NORMAL;
-				float4 ase_texcoord : TEXCOORD0;
-
-				UNITY_VERTEX_INPUT_INSTANCE_ID
-			};
-
-			struct TessellationFactors
-			{
-				float edge[3] : SV_TessFactor;
-				float inside : SV_InsideTessFactor;
-			};
-
-			VertexControl vert ( VertexInput v )
-			{
-				VertexControl o;
-				UNITY_SETUP_INSTANCE_ID(v);
-				UNITY_TRANSFER_INSTANCE_ID(v, o);
-				o.vertex = v.vertex;
-				o.ase_normal = v.ase_normal;
-				o.ase_texcoord = v.ase_texcoord;
-				return o;
-			}
-
-			TessellationFactors TessellationFunction (InputPatch<VertexControl,3> v)
-			{
-				TessellationFactors o;
-				float4 tf = 1;
-				float tessValue = _TessValue; float tessMin = _TessMin; float tessMax = _TessMax;
-				float edgeLength = _TessEdgeLength; float tessMaxDisp = _TessMaxDisp;
-				#if defined(ASE_FIXED_TESSELLATION)
-				tf = FixedTess( tessValue );
-				#elif defined(ASE_DISTANCE_TESSELLATION)
-				tf = DistanceBasedTess(v[0].vertex, v[1].vertex, v[2].vertex, tessValue, tessMin, tessMax, GetObjectToWorldMatrix(), _WorldSpaceCameraPos );
-				#elif defined(ASE_LENGTH_TESSELLATION)
-				tf = EdgeLengthBasedTess(v[0].vertex, v[1].vertex, v[2].vertex, edgeLength, GetObjectToWorldMatrix(), _WorldSpaceCameraPos, _ScreenParams );
-				#elif defined(ASE_LENGTH_CULL_TESSELLATION)
-				tf = EdgeLengthBasedTessCull(v[0].vertex, v[1].vertex, v[2].vertex, edgeLength, tessMaxDisp, GetObjectToWorldMatrix(), _WorldSpaceCameraPos, _ScreenParams, unity_CameraWorldClipPlanes );
-				#endif
-				o.edge[0] = tf.x; o.edge[1] = tf.y; o.edge[2] = tf.z; o.inside = tf.w;
-				return o;
-			}
-
-			[domain("tri")]
-			[partitioning("fractional_odd")]
-			[outputtopology("triangle_cw")]
-			[patchconstantfunc("TessellationFunction")]
-			[outputcontrolpoints(3)]
-			VertexControl HullFunction(InputPatch<VertexControl, 3> patch, uint id : SV_OutputControlPointID)
-			{
-				return patch[id];
-			}
-
-			[domain("tri")]
-			VertexOutput DomainFunction(TessellationFactors factors, OutputPatch<VertexControl, 3> patch, float3 bary : SV_DomainLocation)
-			{
-				VertexInput o = (VertexInput) 0;
-				o.vertex = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex * bary.z;
-				o.ase_normal = patch[0].ase_normal * bary.x + patch[1].ase_normal * bary.y + patch[2].ase_normal * bary.z;
-				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
-				#if defined(ASE_PHONG_TESSELLATION)
-				float3 pp[3];
-				for (int i = 0; i < 3; ++i)
-					pp[i] = o.vertex.xyz - patch[i].ase_normal * (dot(o.vertex.xyz, patch[i].ase_normal) - dot(patch[i].vertex.xyz, patch[i].ase_normal));
-				float phongStrength = _TessPhongStrength;
-				o.vertex.xyz = phongStrength * (pp[0]*bary.x + pp[1]*bary.y + pp[2]*bary.z) + (1.0f-phongStrength) * o.vertex.xyz;
-				#endif
-				UNITY_TRANSFER_INSTANCE_ID(patch[0], o);
-				return VertexFunction(o);
-			}
-			#else
-			VertexOutput vert ( VertexInput v )
-			{
-				return VertexFunction( v );
-			}
-			#endif
-
-			half4 frag(VertexOutput IN ) : SV_TARGET
-			{
-				SurfaceDescription surfaceDescription = (SurfaceDescription)0;
-
-				float temp_output_235_0 = ( _FoliageSize / 100.0 );
-				float2 appendResult234 = (float2(temp_output_235_0 , temp_output_235_0));
-				float2 texCoord236 = IN.ase_texcoord.xy * appendResult234 + float2( 0,0 );
-				float4 tex2DNode124 = tex2D( _FoliageColorMap, texCoord236 );
-				float vFoliageOpacity173 = tex2DNode124.a;
-				
-
-				surfaceDescription.Alpha = vFoliageOpacity173;
-				surfaceDescription.AlphaClipThreshold = _MaskClipValue;
-
-				#if _ALPHATEST_ON
-					float alphaClipThreshold = 0.01f;
-					#if ALPHA_CLIP_THRESHOLD
-						alphaClipThreshold = surfaceDescription.AlphaClipThreshold;
-					#endif
-					clip(surfaceDescription.Alpha - alphaClipThreshold);
-				#endif
-
-				half4 outColor = 0;
-				outColor = _SelectionID;
-
-				return outColor;
-			}
-
-			ENDHLSL
-		}
-
-		
-		Pass
-		{
-			
             Name "DepthNormals"
             Tags { "LightMode"="DepthNormalsOnly" }
 
@@ -1870,10 +1268,8 @@ Shader "Polyart/Dreamscape/URP/Tree Wind Custom Lighting"
 			HLSLPROGRAM
 
 			#pragma multi_compile_instancing
-			#pragma multi_compile_fog
-			#define ASE_FOG 1
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma vertex vert
@@ -2175,10 +1571,8 @@ Shader "Polyart/Dreamscape/URP/Tree Wind Custom Lighting"
 			HLSLPROGRAM
 
 			#pragma multi_compile_instancing
-			#pragma multi_compile_fog
-			#define ASE_FOG 1
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma exclude_renderers glcore gles gles3 
@@ -2477,7 +1871,7 @@ Shader "Polyart/Dreamscape/URP/Tree Wind Custom Lighting"
 	Fallback Off
 }
 /*ASEBEGIN
-Version=19105
+Version=19200
 Node;AmplifyShaderEditor.RangedFloatNode;111;-3366.52,-2044.726;Inherit;False;Property;_GradientFallout;Gradient Fallout;8;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.RangedFloatNode;110;-3364.521,-2127.726;Inherit;False;Property;_GradientOffset;Gradient Offset;7;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.TexturePropertyNode;123;-2704.77,-2184.466;Inherit;True;Property;_FoliageColorMap;Foliage Color Map;2;2;[Header];[SingleLineTexture];Create;True;2;Foliage;.;0;0;False;0;False;None;None;False;white;Auto;Texture2D;-1;0;2;SAMPLER2D;0;SAMPLERSTATE;1
@@ -2541,11 +1935,12 @@ Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;397;1411.169,889.1141;Float
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;398;1411.169,889.1141;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;1;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;ScenePickingPass;0;7;ScenePickingPass;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;3;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=Picking;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;399;1411.169,889.1141;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;1;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;DepthNormals;0;8;DepthNormals;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;3;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=DepthNormalsOnly;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;400;1411.169,889.1141;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;1;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;DepthNormalsOnly;0;9;DepthNormalsOnly;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;3;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=DepthNormalsOnly;False;True;9;d3d11;metal;vulkan;xboxone;xboxseries;playstation;ps4;ps5;switch;0;;0;0;Standard;0;False;0
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;392;1411.169,889.1141;Float;False;True;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;Polyart/Dreamscape/URP/Tree Wind Custom Lighting;2992e84f91cbeb14eab234972e07ea9d;True;Forward;0;1;Forward;8;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;2;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;3;True;12;all;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForwardOnly;False;False;0;;0;0;Standard;23;Surface;0;0;  Blend;0;0;Two Sided;0;638099232587446857;Forward Only;0;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;Receive Shadows;1;0;GPU Instancing;1;0;LOD CrossFade;0;0;Built-in Fog;1;638126632095055901;DOTS Instancing;0;0;Meta Pass;0;0;Extra Pre Pass;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Vertex Position,InvertActionOnDeselection;1;0;0;10;False;True;True;True;False;False;True;True;True;True;False;;False;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;392;1411.169,889.1141;Float;False;True;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;Polyart/Dreamscape/URP/Tree Wind Custom Lighting;2992e84f91cbeb14eab234972e07ea9d;True;Forward;0;1;Forward;8;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;2;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;3;True;12;all;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForwardOnly;False;False;0;;0;0;Standard;23;Surface;0;0;  Blend;0;0;Two Sided;0;638099232587446857;Forward Only;0;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;Receive Shadows;1;0;GPU Instancing;1;0;LOD CrossFade;0;0;Built-in Fog;0;638363008077829467;DOTS Instancing;0;0;Meta Pass;0;0;Extra Pre Pass;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Vertex Position,InvertActionOnDeselection;1;0;0;10;False;True;True;True;False;False;False;False;True;True;False;;False;0
 Node;AmplifyShaderEditor.RangedFloatNode;401;-4557.155,-686.1132;Inherit;False;Property;_SubsurfaceFadeDistance;Subsurface Fade Distance;25;0;Create;True;0;0;0;False;0;False;200;0;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.LerpOp;402;-3840.689,-776.2373;Inherit;False;3;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.FunctionNode;404;-4245.709,-680.3781;Inherit;False;PA_SF_DistanceBlend;-1;;95;35a1c16c00037ed46b6114de6dd42a44;0;2;6;FLOAT;200;False;8;FLOAT;2;False;1;FLOAT;0
 Node;AmplifyShaderEditor.RangedFloatNode;296;-4316.761,-869.2956;Inherit;False;Property;_SubsurfaceIntensity;Subsurface Intensity;24;0;Create;True;0;0;0;False;0;False;10;0;0;100;0;1;FLOAT;0
+Node;AmplifyShaderEditor.ClampOpNode;405;1003.577,870.006;Inherit;False;3;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;2;COLOR;1,1,1,0;False;1;COLOR;0
 WireConnection;131;8;110;0
 WireConnection;131;9;111;0
 WireConnection;124;0;123;0
@@ -2592,12 +1987,13 @@ WireConnection;235;0;233;0
 WireConnection;234;0;235;0
 WireConnection;234;1;235;0
 WireConnection;236;0;234;0
-WireConnection;392;2;359;0
+WireConnection;392;2;405;0
 WireConnection;392;3;183;0
 WireConnection;392;4;107;0
 WireConnection;392;5;117;0
 WireConnection;402;0;296;0
 WireConnection;402;2;404;0
 WireConnection;404;6;401;0
+WireConnection;405;0;359;0
 ASEEND*/
-//CHKSM=798E0FEC104DBD55991FDD7C6BC14FA97BBC339E
+//CHKSM=104392DD742BFD88B62613D7AD2110C32CF34227

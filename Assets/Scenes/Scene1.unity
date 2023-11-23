@@ -2175,6 +2175,16 @@ PrefabInstance:
     - target: {fileID: 8855483793129214961, guid: 808537f6015436d479621d5771b7cefd,
         type: 3}
       propertyPath: m_DrawTreesAndFoliage
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8855483793129214961, guid: 808537f6015436d479621d5771b7cefd,
+        type: 3}
+      propertyPath: m_BakeLightProbesForTrees
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8855483793129214961, guid: 808537f6015436d479621d5771b7cefd,
+        type: 3}
+      propertyPath: m_PreserveTreePrototypeLayers
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8855483793315483011, guid: 808537f6015436d479621d5771b7cefd,
