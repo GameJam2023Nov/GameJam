@@ -8,6 +8,7 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
     [SerializeField] private Characters characters;
     [SerializeField] private ColliderFinalPoint colliderFinalPoint;
     [SerializeField] private Temporizador temporizador;
+    [SerializeField] private StagesInfo stagesInfo;
     private TeaTime _beforeToStart, _start, _game, _runNutria, _end;
     private bool _endGame;
     private bool _isWin;
@@ -103,6 +104,7 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
             {
                 //Mostrar mensaje de que gano
                 ServiceLocator.Instance.GetService<IMessages>().ShowMessage("Ganaste", 20f);
+                ServiceLocator.Instance.GetService<IRulesOfGameService>().CompleteStage(stagesInfo);
             }
             else
             {
