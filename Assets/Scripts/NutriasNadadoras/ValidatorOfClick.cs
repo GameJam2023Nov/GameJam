@@ -91,7 +91,7 @@ public class ValidatorOfClick : MonoBehaviour
                 {
                     if (hit.collider.gameObject.CompareTag("TierraFinal"))
                     {
-                        Debug.Log("Tierra Final");
+                        //Debug.Log("Tierra Final");
                         CanMoveP();
                         _anchorPoint = hit.point;
                         return;

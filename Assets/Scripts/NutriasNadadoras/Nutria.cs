@@ -9,25 +9,24 @@ public abstract class Nutria : MonoBehaviour
     [SerializeField] private Rigidbody rigidbody;
     [SerializeField] private AnimatorControllerCustom animatorControllerCustom;
     public Action<GameObject> onTouchFinalEarth;
-    private Vector3 _pointToAnchor;
     private bool _canMove;
     private Vector3 _targetPosition;
     private bool _moveToTarget;
     private bool _wasSelected;
     private bool _wasDeleted;
+    private bool _arriveToDestiny;
 
     public void Configure()
     {
         _canMove = false;
         _targetPosition = transform.position;
-        CanMove(true);
+        //CanMove(true);
     }
     
     public void GoTo(Vector3 position, Vector3 pointToAnchor)
     {
         //Debug.Log("Go to: " + position);
         if(_moveToTarget) return;
-        _pointToAnchor = pointToAnchor;
         _targetPosition = position;
         _canMove = true;
         _moveToTarget = true;
@@ -42,8 +41,9 @@ public abstract class Nutria : MonoBehaviour
         {
             _canMove = false;
             _moveToTarget = false;
-            CanMove(_canMove);
             animatorControllerCustom.SetVelocity(0);
+            _arriveToDestiny = true;
+            CanMove(_canMove);
             return;
         }
         var direction = (_targetPosition - transform.position).normalized;
@@ -52,7 +52,7 @@ public abstract class Nutria : MonoBehaviour
         //set rotation to direction
         var lookRotation = Quaternion.LookRotation(direction);
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
-        Debug.Log("Move");
+        //Debug.Log("Move");
     }
 
     private void CanMove(bool canMove)
@@ -70,8 +70,7 @@ public abstract class Nutria : MonoBehaviour
 
     public void StartIdle()
     {
-        //_canMove = true;
-        CanMove(false);
+        
     }
 
     public bool CanSelected()
@@ -81,7 +80,7 @@ public abstract class Nutria : MonoBehaviour
 
     public void AddForce(Vector3 direction)
     {
-        rigidbody.AddForce(direction * speed);
+        rigidbody.AddForce(direction);
     }
 
     public void Release()
@@ -91,7 +90,7 @@ public abstract class Nutria : MonoBehaviour
 
     public bool ArriveToDestiny()
     {
-        return !_canMove;
+        return _arriveToDestiny;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -103,7 +102,9 @@ public abstract class Nutria : MonoBehaviour
         }
         if (other.gameObject.CompareTag("TierraFinal"))
         {
+            Debug.Log("Tierra Final");
             onTouchFinalEarth?.Invoke(other.gameObject);
+            _arriveToDestiny = true;
         }
     }
 
@@ -120,22 +121,9 @@ public abstract class Nutria : MonoBehaviour
     {
         if (other.gameObject.CompareTag("TierraFinal"))
         {
+            Debug.Log("Tierra Final");
             onTouchFinalEarth?.Invoke(other.gameObject);
+            _arriveToDestiny = true;
         }
-    }
-
-    public bool WasDeleted()
-    {
-        return _wasDeleted;
-    }
-
-    public void Deleted()
-    {
-        _wasDeleted = true;
-    }
-
-    public void DeadNutria()
-    {
-        animatorControllerCustom.IsDead(true);
     }
 }

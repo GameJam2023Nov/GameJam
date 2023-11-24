@@ -1,3 +1,4 @@
+using System.Collections;
 using SL;
 using UnityEngine;
 
@@ -5,11 +6,15 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
 {
     [SerializeField] private Map map;
     [SerializeField] private Characters characters;
-    private TeaTime _beforeToStart, _start, _game, _end;
+    [SerializeField] private ColliderFinalPoint colliderFinalPoint;
+    [SerializeField] private Temporizador temporizador;
+    private TeaTime _beforeToStart, _start, _game, _runNutria, _end;
     private bool _endGame;
     private bool _isWin;
     private bool _seleccionoAlgo;
     private int _seleccionDeFinDeJuego;
+    private bool _finishedFade;
+    private bool _canRun;
     
     public bool EndGame => _endGame;
     public bool IsWin => _isWin;
@@ -36,8 +41,9 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
         _seleccionDeFinDeJuego = seleccionDeFinDeJuego;
     }
 
-    void Start()
+    protected override void CustomStart()
     {
+        base.CustomStart();
         Debug.Log("RulesOfGame");
         _beforeToStart = this.tt().Pause().Add(() =>
         {
@@ -54,10 +60,13 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
         {
             Debug.Log("start");
             //Hacer el FadeOut de la pantalla de inicio
-            ServiceLocator.Instance.GetService<IFade>().Out();
+            ServiceLocator.Instance.GetService<IFade>().Out(() =>
+            {
+                _finishedFade = true;
+            });
             //Mostrar mensaje de que empieza el juego
             ServiceLocator.Instance.GetService<IMessages>().ShowMessage("Empieza el juego", 2f);
-        }).Add(2f).Add(() =>
+        }).Wait(()=> _finishedFade).Add(() =>
         {
             _game.Play();
         });
@@ -67,8 +76,23 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
             //darle la orden a todos los componentes configurados a que empiecen
             map.StartGame();
             characters.StartGame();
-        }).Wait(()=>_endGame).Add(() =>
+            temporizador.Configure();
+        }).Wait(()=>_canRun || temporizador.IsTimeOut).Add(() =>
         {
+            if (temporizador.IsTimeOut)
+            {
+                _isWin = false;
+                _end.Play();
+                return;
+            }
+            _runNutria.Play();
+        });
+        _runNutria = this.tt().Pause().Add(() =>
+        {
+            ServiceLocator.Instance.GetService<IMessages>().ShowMessage("Corre con las nutrias al otro lado", 2f);
+        }).Wait(()=> colliderFinalPoint.CountOfNutriasIntoCollider >= characters.GetNutrias().Count || temporizador.IsTimeOut, 0.1f).Add(() =>
+        {
+            _isWin = !temporizador.IsTimeOut;
             _end.Play();
         });
         _end = this.tt().Pause().Add(() =>
@@ -78,12 +102,12 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
             if (_isWin)
             {
                 //Mostrar mensaje de que gano
-                ServiceLocator.Instance.GetService<IMessages>().ShowMessage("Ganaste", 2f);
+                ServiceLocator.Instance.GetService<IMessages>().ShowMessage("Ganaste", 20f);
             }
             else
             {
                 //Mostrar mensaje de que perdio
-                ServiceLocator.Instance.GetService<IMessages>().ShowMessage("Perdiste", 2f);
+                ServiceLocator.Instance.GetService<IMessages>().ShowMessage("Perdiste", 20f);
             }
         }).Wait(()=>_seleccionoAlgo).Add(()=>
         {
@@ -100,6 +124,12 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
             }
         });
         _beforeToStart.Play();
+        characters.onCanRun += () =>
+        {
+            Debug.Log("onCanRun");
+            _canRun = true;
+        };
+        Debug.Log("RegisterService");
     }
 
     protected override bool Validation()

@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 internal class Characters : MonoBehaviour
 {
+    public Action onCanRun;
     [SerializeField] private GameObject nutriaPrefab;
-    [SerializeField] private GameObject pointToSpawn;
+    [SerializeField] private GameObject pointToSpawn, finalEarth;
     [SerializeField] private int countOfNutrias;
     [SerializeField] private SelectorOfNutria selectorOfNutrias;
     [SerializeField] private float radiusOfPosition;
@@ -25,7 +28,8 @@ internal class Characters : MonoBehaviour
             {
                 //Can select the final earth
                 Debug.Log("Can select the final earth");
-                validationOfVictory.AddFinalDestiny(tierraFirme);
+                onCanRun?.Invoke();
+                validationOfVictory.AddFinalDestiny(finalEarth);
                 validatorOfClick.CanSelectFinalEarth();
             };
             nutrias.Add(nutria);
@@ -39,5 +43,10 @@ internal class Characters : MonoBehaviour
         {
             nutria.StartIdle();
         }
+    }
+
+    public List<Nutria> GetNutrias()
+    {
+        return nutrias;
     }
 }
