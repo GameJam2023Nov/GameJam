@@ -112,7 +112,7 @@ Material:
     - _GradientOffset: -6.5
     - _IndirectLightningIntensity: 2
     - _InteractionAlpha: 1
-    - _LightOffset: 0.5
+    - _LightOffset: 0.299
     - _MaskClipValue: 0.5
     - _Metallic: 0
     - _Mode: 0

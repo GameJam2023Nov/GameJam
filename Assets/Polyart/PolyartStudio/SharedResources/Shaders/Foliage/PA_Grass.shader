@@ -1,4 +1,4 @@
-// Made with Amplify Shader Editor v1.9.1.5
+// Made with Amplify Shader Editor v1.9.2
 // Available at the Unity Asset Store - http://u3d.as/y3X 
 Shader "Polyart/Dreamscape/URP/Grass"
 {
@@ -6,7 +6,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 	{
 		[HideInInspector] _EmissionColor("Emission Color", Color) = (1,1,1,1)
 		[HideInInspector] _AlphaCutoff("Alpha Cutoff ", Range(0, 1)) = 0.5
-		[ASEBegin][Header(Base Maps)][Header(.)][SingleLineTexture]_MainTex("Foliage Texture", 2D) = "white" {}
+		[Header(Base Maps)][Header(.)][SingleLineTexture]_MainTex("Foliage Texture", 2D) = "white" {}
 		[SingleLineTexture]_VariationMask("Variation Mask", 2D) = "white" {}
 		[Header(Base Parameters)]_VariationMapScale("Variation Map Scale", Float) = 15
 		_ColorTop("Color Top", Color) = (0,0,0,0)
@@ -29,7 +29,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 		[Header(Dithering)][Toggle(_USEDITHERING_ON)] _UseDithering("Use Dithering?", Float) = 0
 		[Toggle(_USEGLOBALSETTING_ON)] _UseGlobalSetting("Use Global Setting?", Float) = 0
 		_DitherBottomLevel("Dither Bottom Level", Range( -10 , 10)) = 0
-		[ASEEnd]_DitherFade("Dither Fade", Range( 0 , 10)) = 0
+		_DitherFade("Dither Fade", Range( 0 , 10)) = 0
 		[HideInInspector] _texcoord( "", 2D ) = "white" {}
 
 
@@ -210,9 +210,14 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#pragma multi_compile_fog
 			#define ASE_FOG 1
 			#define _SPECULAR_SETUP 1
+			#pragma shader_feature_local_fragment _SPECULAR_SETUP
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
+
+			#pragma shader_feature_local _RECEIVE_SHADOWS_OFF
+			#pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
+			#pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
 
 			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
 			#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
@@ -225,9 +230,6 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#pragma multi_compile_fragment _ _LIGHT_LAYERS
 			#pragma multi_compile_fragment _ _LIGHT_COOKIES
 			#pragma multi_compile _ _CLUSTERED_RENDERING
-			#pragma shader_feature_local _RECEIVE_SHADOWS_OFF
-			#pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
-			#pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
 
 			#pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
 			#pragma multi_compile _ SHADOWS_SHADOWMASK
@@ -266,6 +268,14 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#pragma shader_feature_local _USEGLOBALSETTING_ON
 
 
+			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE) && (SHADER_TARGET >= 45)
+				#define ASE_SV_DEPTH SV_DepthLessEqual
+				#define ASE_SV_POSITION_QUALIFIERS linear noperspective centroid
+			#else
+				#define ASE_SV_DEPTH SV_Depth
+				#define ASE_SV_POSITION_QUALIFIERS
+			#endif
+
 			struct VertexInput
 			{
 				float4 vertex : POSITION;
@@ -280,17 +290,15 @@ Shader "Polyart/Dreamscape/URP/Grass"
 
 			struct VertexOutput
 			{
-				float4 clipPos : SV_POSITION;
-				float4 lightmapUVOrVertexSH : TEXCOORD0;
-				half4 fogFactorAndVertexLight : TEXCOORD1;
-				#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-					float4 shadowCoord : TEXCOORD2;
-				#endif
+				ASE_SV_POSITION_QUALIFIERS float4 clipPos : SV_POSITION;
+				float4 clipPosV : TEXCOORD0;
+				float4 lightmapUVOrVertexSH : TEXCOORD1;
+				half4 fogFactorAndVertexLight : TEXCOORD2;
 				float4 tSpace0 : TEXCOORD3;
 				float4 tSpace1 : TEXCOORD4;
 				float4 tSpace2 : TEXCOORD5;
-				#if defined(ASE_NEEDS_FRAG_SCREEN_POSITION)
-					float4 screenPos : TEXCOORD6;
+				#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+					float4 shadowCoord : TEXCOORD6;
 				#endif
 				#if defined(DYNAMICLIGHTMAP_ON)
 					float2 dynamicLightmapUV : TEXCOORD7;
@@ -492,8 +500,8 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 
 				#if defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-					o.lightmapUVOrVertexSH.zw = v.texcoord;
-					o.lightmapUVOrVertexSH.xy = v.texcoord * unity_LightmapST.xy + unity_LightmapST.zw;
+					o.lightmapUVOrVertexSH.zw = v.texcoord.xy;
+					o.lightmapUVOrVertexSH.xy = v.texcoord.xy * unity_LightmapST.xy + unity_LightmapST.zw;
 				#endif
 
 				half3 vertexLight = VertexLighting( positionWS, normalInput.normalWS );
@@ -514,11 +522,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 
 				o.clipPos = positionCS;
-
-				#if defined(ASE_NEEDS_FRAG_SCREEN_POSITION)
-					o.screenPos = ComputeScreenPos(positionCS);
-				#endif
-
+				o.clipPosV = positionCS;
 				return o;
 			}
 
@@ -614,12 +618,6 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			}
 			#endif
 
-			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE)
-				#define ASE_SV_DEPTH SV_DepthLessEqual
-			#else
-				#define ASE_SV_DEPTH SV_Depth
-			#endif
-
 			half4 frag ( VertexOutput IN
 						#ifdef ASE_DEPTH_WRITE_ON
 						,out float outputDepth : ASE_SV_DEPTH
@@ -648,9 +646,8 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float3 WorldViewDirection = _WorldSpaceCameraPos.xyz  - WorldPosition;
 				float4 ShadowCoords = float4( 0, 0, 0, 0 );
 
-				#if defined(ASE_NEEDS_FRAG_SCREEN_POSITION)
-					float4 ScreenPos = IN.screenPos;
-				#endif
+				float4 ClipPos = IN.clipPosV;
+				float4 ScreenPos = ComputeScreenPos( IN.clipPosV );
 
 				float2 NormalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
 
@@ -667,6 +664,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float2 uv_MainTex = IN.ase_texcoord9.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float4 tex2DNode22 = tex2D( _MainTex, uv_MainTex );
 				float4 vColor27 = ( lerpResult23 * tex2DNode22 );
+				float4 clampResult219 = clamp( vColor27 , float4( 0,0,0,0 ) , float4( 1,1,1,0 ) );
 				
 				float3 temp_cast_1 = (_FoliageSpecular).xxx;
 				
@@ -694,7 +692,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 				
 
-				float3 BaseColor = vColor27.rgb;
+				float3 BaseColor = clampResult219.rgb;
 				float3 Normal = float3(0, 0, 1);
 				float3 Emission = 0;
 				float3 Specular = temp_cast_1;
@@ -711,7 +709,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float3 Translucency = 1;
 
 				#ifdef ASE_DEPTH_WRITE_ON
-					float DepthValue = 0;
+					float DepthValue = IN.clipPos.z;
 				#endif
 
 				#ifdef _CLEARCOAT
@@ -917,7 +915,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#define ASE_FOG 1
 			#define _SPECULAR_SETUP 1
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma vertex vert
@@ -937,11 +935,20 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
 			#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
+			#define ASE_NEEDS_FRAG_SCREEN_POSITION
 			#pragma shader_feature_local _USEGLOBALWINDSETTINGS_ON
 			#pragma shader_feature_local _USEVERTEXCOLOR_ON
 			#pragma shader_feature _USEDITHERING_ON
 			#pragma shader_feature_local _USEGLOBALSETTING_ON
 
+
+			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE) && (SHADER_TARGET >= 45)
+				#define ASE_SV_DEPTH SV_DepthLessEqual
+				#define ASE_SV_POSITION_QUALIFIERS linear noperspective centroid
+			#else
+				#define ASE_SV_DEPTH SV_Depth
+				#define ASE_SV_POSITION_QUALIFIERS
+			#endif
 
 			struct VertexInput
 			{
@@ -954,14 +961,14 @@ Shader "Polyart/Dreamscape/URP/Grass"
 
 			struct VertexOutput
 			{
-				float4 clipPos : SV_POSITION;
+				ASE_SV_POSITION_QUALIFIERS float4 clipPos : SV_POSITION;
+				float4 clipPosV : TEXCOORD0;
 				#if defined(ASE_NEEDS_FRAG_WORLD_POSITION)
-					float3 worldPos : TEXCOORD0;
+					float3 worldPos : TEXCOORD1;
 				#endif
 				#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR) && defined(ASE_NEEDS_FRAG_SHADOWCOORDS)
-					float4 shadowCoord : TEXCOORD1;
-				#endif
-				float4 ase_texcoord2 : TEXCOORD2;
+					float4 shadowCoord : TEXCOORD2;
+				#endif				
 				float4 ase_texcoord3 : TEXCOORD3;
 				float4 ase_texcoord4 : TEXCOORD4;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -1117,15 +1124,11 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float4 lerpResult108 = lerp( color128 , lerpResult27_g12 , staticSwitch191);
 				float4 vWind116 = lerpResult108;
 				
-				float4 ase_clipPos = TransformObjectToHClip((v.vertex).xyz);
-				float4 screenPos = ComputeScreenPos(ase_clipPos);
-				o.ase_texcoord3 = screenPos;
-				
-				o.ase_texcoord2.xy = v.ase_texcoord.xy;
+				o.ase_texcoord3.xy = v.ase_texcoord.xy;
 				o.ase_texcoord4 = v.vertex;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
-				o.ase_texcoord2.zw = 0;
+				o.ase_texcoord3.zw = 0;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					float3 defaultVertexValue = v.vertex.xyz;
@@ -1172,7 +1175,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 
 				o.clipPos = clipPos;
-
+				o.clipPosV = clipPos;
 				return o;
 			}
 
@@ -1259,12 +1262,6 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			}
 			#endif
 
-			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE)
-				#define ASE_SV_DEPTH SV_DepthLessEqual
-			#else
-				#define ASE_SV_DEPTH SV_Depth
-			#endif
-
 			half4 frag(	VertexOutput IN
 						#ifdef ASE_DEPTH_WRITE_ON
 						,out float outputDepth : ASE_SV_DEPTH
@@ -1279,6 +1276,8 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 
 				float4 ShadowCoords = float4( 0, 0, 0, 0 );
+				float4 ClipPos = IN.clipPosV;
+				float4 ScreenPos = ComputeScreenPos( IN.clipPosV );
 
 				#if defined(ASE_NEEDS_FRAG_SHADOWCOORDS)
 					#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -1288,11 +1287,10 @@ Shader "Polyart/Dreamscape/URP/Grass"
 					#endif
 				#endif
 
-				float2 uv_MainTex = IN.ase_texcoord2.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				float2 uv_MainTex = IN.ase_texcoord3.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float4 tex2DNode22 = tex2D( _MainTex, uv_MainTex );
 				float vAlpha125 = tex2DNode22.a;
-				float4 screenPos = IN.ase_texcoord3;
-				float4 ase_screenPosNorm = screenPos / screenPos.w;
+				float4 ase_screenPosNorm = ScreenPos / ScreenPos.w;
 				ase_screenPosNorm.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_screenPosNorm.z : ase_screenPosNorm.z * 0.5 + 0.5;
 				float2 clipScreen8_g11 = ase_screenPosNorm.xy * _ScreenParams.xy;
 				float dither8_g11 = Dither4x4Bayer( fmod(clipScreen8_g11.x, 4), fmod(clipScreen8_g11.y, 4) );
@@ -1320,7 +1318,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float AlphaClipThresholdShadow = 0.5;
 
 				#ifdef ASE_DEPTH_WRITE_ON
-					float DepthValue = 0;
+					float DepthValue = IN.clipPos.z;
 				#endif
 
 				#ifdef _ALPHATEST_ON
@@ -1363,7 +1361,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#define ASE_FOG 1
 			#define _SPECULAR_SETUP 1
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma vertex vert
@@ -1381,11 +1379,20 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
 			#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
+			#define ASE_NEEDS_FRAG_SCREEN_POSITION
 			#pragma shader_feature_local _USEGLOBALWINDSETTINGS_ON
 			#pragma shader_feature_local _USEVERTEXCOLOR_ON
 			#pragma shader_feature _USEDITHERING_ON
 			#pragma shader_feature_local _USEGLOBALSETTING_ON
 
+
+			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE) && (SHADER_TARGET >= 45)
+				#define ASE_SV_DEPTH SV_DepthLessEqual
+				#define ASE_SV_POSITION_QUALIFIERS linear noperspective centroid
+			#else
+				#define ASE_SV_DEPTH SV_Depth
+				#define ASE_SV_POSITION_QUALIFIERS
+			#endif
 
 			struct VertexInput
 			{
@@ -1398,14 +1405,14 @@ Shader "Polyart/Dreamscape/URP/Grass"
 
 			struct VertexOutput
 			{
-				float4 clipPos : SV_POSITION;
+				ASE_SV_POSITION_QUALIFIERS float4 clipPos : SV_POSITION;
+				float4 clipPosV : TEXCOORD0;
 				#if defined(ASE_NEEDS_FRAG_WORLD_POSITION)
-				float3 worldPos : TEXCOORD0;
+				float3 worldPos : TEXCOORD1;
 				#endif
 				#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR) && defined(ASE_NEEDS_FRAG_SHADOWCOORDS)
-				float4 shadowCoord : TEXCOORD1;
+				float4 shadowCoord : TEXCOORD2;
 				#endif
-				float4 ase_texcoord2 : TEXCOORD2;
 				float4 ase_texcoord3 : TEXCOORD3;
 				float4 ase_texcoord4 : TEXCOORD4;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -1558,15 +1565,11 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float4 lerpResult108 = lerp( color128 , lerpResult27_g12 , staticSwitch191);
 				float4 vWind116 = lerpResult108;
 				
-				float4 ase_clipPos = TransformObjectToHClip((v.vertex).xyz);
-				float4 screenPos = ComputeScreenPos(ase_clipPos);
-				o.ase_texcoord3 = screenPos;
-				
-				o.ase_texcoord2.xy = v.ase_texcoord.xy;
+				o.ase_texcoord3.xy = v.ase_texcoord.xy;
 				o.ase_texcoord4 = v.vertex;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
-				o.ase_texcoord2.zw = 0;
+				o.ase_texcoord3.zw = 0;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					float3 defaultVertexValue = v.vertex.xyz;
@@ -1598,7 +1601,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 
 				o.clipPos = positionCS;
-
+				o.clipPosV = positionCS;
 				return o;
 			}
 
@@ -1685,12 +1688,6 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			}
 			#endif
 
-			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE)
-				#define ASE_SV_DEPTH SV_DepthLessEqual
-			#else
-				#define ASE_SV_DEPTH SV_Depth
-			#endif
-
 			half4 frag(	VertexOutput IN
 						#ifdef ASE_DEPTH_WRITE_ON
 						,out float outputDepth : ASE_SV_DEPTH
@@ -1705,6 +1702,8 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 
 				float4 ShadowCoords = float4( 0, 0, 0, 0 );
+				float4 ClipPos = IN.clipPosV;
+				float4 ScreenPos = ComputeScreenPos( IN.clipPosV );
 
 				#if defined(ASE_NEEDS_FRAG_SHADOWCOORDS)
 					#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -1714,11 +1713,10 @@ Shader "Polyart/Dreamscape/URP/Grass"
 					#endif
 				#endif
 
-				float2 uv_MainTex = IN.ase_texcoord2.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				float2 uv_MainTex = IN.ase_texcoord3.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float4 tex2DNode22 = tex2D( _MainTex, uv_MainTex );
 				float vAlpha125 = tex2DNode22.a;
-				float4 screenPos = IN.ase_texcoord3;
-				float4 ase_screenPosNorm = screenPos / screenPos.w;
+				float4 ase_screenPosNorm = ScreenPos / ScreenPos.w;
 				ase_screenPosNorm.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_screenPosNorm.z : ase_screenPosNorm.z * 0.5 + 0.5;
 				float2 clipScreen8_g11 = ase_screenPosNorm.xy * _ScreenParams.xy;
 				float dither8_g11 = Dither4x4Bayer( fmod(clipScreen8_g11.x, 4), fmod(clipScreen8_g11.y, 4) );
@@ -1744,7 +1742,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float Alpha = staticSwitch182;
 				float AlphaClipThreshold = 0.5;
 				#ifdef ASE_DEPTH_WRITE_ON
-					float DepthValue = 0;
+					float DepthValue = IN.clipPos.z;
 				#endif
 
 				#ifdef _ALPHATEST_ON
@@ -1778,8 +1776,9 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#define _NORMAL_DROPOFF_TS 1
 			#define ASE_FOG 1
 			#define _SPECULAR_SETUP 1
+			#pragma shader_feature_local_fragment _SPECULAR_SETUP
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma vertex vert
@@ -2151,6 +2150,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float2 uv_MainTex = IN.ase_texcoord5.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float4 tex2DNode22 = tex2D( _MainTex, uv_MainTex );
 				float4 vColor27 = ( lerpResult23 * tex2DNode22 );
+				float4 clampResult219 = clamp( vColor27 , float4( 0,0,0,0 ) , float4( 1,1,1,0 ) );
 				
 				float vAlpha125 = tex2DNode22.a;
 				float4 screenPos = IN.ase_texcoord6;
@@ -2177,7 +2177,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 				
 
-				float3 BaseColor = vColor27.rgb;
+				float3 BaseColor = clampResult219.rgb;
 				float3 Emission = 0;
 				float Alpha = staticSwitch182;
 				float AlphaClipThreshold = 0.5;
@@ -2218,7 +2218,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#define ASE_FOG 1
 			#define _SPECULAR_SETUP 1
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma vertex vert
@@ -2568,6 +2568,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float2 uv_MainTex = IN.ase_texcoord3.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float4 tex2DNode22 = tex2D( _MainTex, uv_MainTex );
 				float4 vColor27 = ( lerpResult23 * tex2DNode22 );
+				float4 clampResult219 = clamp( vColor27 , float4( 0,0,0,0 ) , float4( 1,1,1,0 ) );
 				
 				float vAlpha125 = tex2DNode22.a;
 				float4 screenPos = IN.ase_texcoord4;
@@ -2594,7 +2595,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 				
 
-				float3 BaseColor = vColor27.rgb;
+				float3 BaseColor = clampResult219.rgb;
 				float Alpha = staticSwitch182;
 				float AlphaClipThreshold = 0.5;
 
@@ -2629,7 +2630,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#define ASE_FOG 1
 			#define _SPECULAR_SETUP 1
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma vertex vert
@@ -2647,11 +2648,20 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
 			#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
+			#define ASE_NEEDS_FRAG_SCREEN_POSITION
 			#pragma shader_feature_local _USEGLOBALWINDSETTINGS_ON
 			#pragma shader_feature_local _USEVERTEXCOLOR_ON
 			#pragma shader_feature _USEDITHERING_ON
 			#pragma shader_feature_local _USEGLOBALSETTING_ON
 
+
+			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE) && (SHADER_TARGET >= 45)
+				#define ASE_SV_DEPTH SV_DepthLessEqual
+				#define ASE_SV_POSITION_QUALIFIERS linear noperspective centroid
+			#else
+				#define ASE_SV_DEPTH SV_Depth
+				#define ASE_SV_POSITION_QUALIFIERS
+			#endif
 
 			struct VertexInput
 			{
@@ -2665,16 +2675,16 @@ Shader "Polyart/Dreamscape/URP/Grass"
 
 			struct VertexOutput
 			{
-				float4 clipPos : SV_POSITION;
+				ASE_SV_POSITION_QUALIFIERS float4 clipPos : SV_POSITION;
+				float4 clipPosV : TEXCOORD0;
+				float3 worldNormal : TEXCOORD1;
+				float4 worldTangent : TEXCOORD2;
 				#if defined(ASE_NEEDS_FRAG_WORLD_POSITION)
-					float3 worldPos : TEXCOORD0;
+					float3 worldPos : TEXCOORD3;
 				#endif
 				#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR) && defined(ASE_NEEDS_FRAG_SHADOWCOORDS)
-					float4 shadowCoord : TEXCOORD1;
+					float4 shadowCoord : TEXCOORD4;
 				#endif
-				float3 worldNormal : TEXCOORD2;
-				float4 worldTangent : TEXCOORD3;
-				float4 ase_texcoord4 : TEXCOORD4;
 				float4 ase_texcoord5 : TEXCOORD5;
 				float4 ase_texcoord6 : TEXCOORD6;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -2827,15 +2837,11 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float4 lerpResult108 = lerp( color128 , lerpResult27_g12 , staticSwitch191);
 				float4 vWind116 = lerpResult108;
 				
-				float4 ase_clipPos = TransformObjectToHClip((v.vertex).xyz);
-				float4 screenPos = ComputeScreenPos(ase_clipPos);
-				o.ase_texcoord5 = screenPos;
-				
-				o.ase_texcoord4.xy = v.ase_texcoord.xy;
+				o.ase_texcoord5.xy = v.ase_texcoord.xy;
 				o.ase_texcoord6 = v.vertex;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
-				o.ase_texcoord4.zw = 0;
+				o.ase_texcoord5.zw = 0;
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					float3 defaultVertexValue = v.vertex.xyz;
 				#else
@@ -2871,7 +2877,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 
 				o.clipPos = positionCS;
-
+				o.clipPosV = positionCS;
 				return o;
 			}
 
@@ -2961,12 +2967,6 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			}
 			#endif
 
-			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE)
-				#define ASE_SV_DEPTH SV_DepthLessEqual
-			#else
-				#define ASE_SV_DEPTH SV_Depth
-			#endif
-
 			half4 frag(	VertexOutput IN
 						#ifdef ASE_DEPTH_WRITE_ON
 						,out float outputDepth : ASE_SV_DEPTH
@@ -2984,6 +2984,9 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float3 WorldNormal = IN.worldNormal;
 				float4 WorldTangent = IN.worldTangent;
 
+				float4 ClipPos = IN.clipPosV;
+				float4 ScreenPos = ComputeScreenPos( IN.clipPosV );
+
 				#if defined(ASE_NEEDS_FRAG_SHADOWCOORDS)
 					#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
 						ShadowCoords = IN.shadowCoord;
@@ -2992,11 +2995,10 @@ Shader "Polyart/Dreamscape/URP/Grass"
 					#endif
 				#endif
 
-				float2 uv_MainTex = IN.ase_texcoord4.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				float2 uv_MainTex = IN.ase_texcoord5.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float4 tex2DNode22 = tex2D( _MainTex, uv_MainTex );
 				float vAlpha125 = tex2DNode22.a;
-				float4 screenPos = IN.ase_texcoord5;
-				float4 ase_screenPosNorm = screenPos / screenPos.w;
+				float4 ase_screenPosNorm = ScreenPos / ScreenPos.w;
 				ase_screenPosNorm.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_screenPosNorm.z : ase_screenPosNorm.z * 0.5 + 0.5;
 				float2 clipScreen8_g11 = ase_screenPosNorm.xy * _ScreenParams.xy;
 				float dither8_g11 = Dither4x4Bayer( fmod(clipScreen8_g11.x, 4), fmod(clipScreen8_g11.y, 4) );
@@ -3023,7 +3025,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float Alpha = staticSwitch182;
 				float AlphaClipThreshold = 0.5;
 				#ifdef ASE_DEPTH_WRITE_ON
-					float DepthValue = 0;
+					float DepthValue = IN.clipPos.z;
 				#endif
 
 				#ifdef _ALPHATEST_ON
@@ -3086,9 +3088,14 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#pragma multi_compile_fog
 			#define ASE_FOG 1
 			#define _SPECULAR_SETUP 1
+			#pragma shader_feature_local_fragment _SPECULAR_SETUP
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
+
+			#pragma shader_feature_local _RECEIVE_SHADOWS_OFF
+			#pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
+			#pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
 
 			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
 			#pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
@@ -3097,9 +3104,6 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 			#pragma multi_compile_fragment _ _LIGHT_LAYERS
 			#pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-			#pragma shader_feature_local _RECEIVE_SHADOWS_OFF
-			#pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
-			#pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
 
 			#pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
 			#pragma multi_compile _ SHADOWS_SHADOWMASK
@@ -3138,6 +3142,14 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#pragma shader_feature_local _USEGLOBALSETTING_ON
 
 
+			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE) && (SHADER_TARGET >= 45)
+				#define ASE_SV_DEPTH SV_DepthLessEqual
+				#define ASE_SV_POSITION_QUALIFIERS linear noperspective centroid
+			#else
+				#define ASE_SV_DEPTH SV_Depth
+				#define ASE_SV_POSITION_QUALIFIERS
+			#endif
+
 			struct VertexInput
 			{
 				float4 vertex : POSITION;
@@ -3152,17 +3164,15 @@ Shader "Polyart/Dreamscape/URP/Grass"
 
 			struct VertexOutput
 			{
-				float4 clipPos : SV_POSITION;
-				float4 lightmapUVOrVertexSH : TEXCOORD0;
-				half4 fogFactorAndVertexLight : TEXCOORD1;
-				#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-				float4 shadowCoord : TEXCOORD2;
-				#endif
+				ASE_SV_POSITION_QUALIFIERS float4 clipPos : SV_POSITION;
+				float4 clipPosV : TEXCOORD0;
+				float4 lightmapUVOrVertexSH : TEXCOORD1;
+				half4 fogFactorAndVertexLight : TEXCOORD2;
 				float4 tSpace0 : TEXCOORD3;
 				float4 tSpace1 : TEXCOORD4;
 				float4 tSpace2 : TEXCOORD5;
-				#if defined(ASE_NEEDS_FRAG_SCREEN_POSITION)
-				float4 screenPos : TEXCOORD6;
+				#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+				float4 shadowCoord : TEXCOORD6;
 				#endif
 				#if defined(DYNAMICLIGHTMAP_ON)
 				float2 dynamicLightmapUV : TEXCOORD7;
@@ -3361,8 +3371,8 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 
 				#if defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-					o.lightmapUVOrVertexSH.zw = v.texcoord;
-					o.lightmapUVOrVertexSH.xy = v.texcoord * unity_LightmapST.xy + unity_LightmapST.zw;
+					o.lightmapUVOrVertexSH.zw = v.texcoord.xy;
+					o.lightmapUVOrVertexSH.xy = v.texcoord.xy * unity_LightmapST.xy + unity_LightmapST.zw;
 				#endif
 
 				half3 vertexLight = VertexLighting( positionWS, normalInput.normalWS );
@@ -3376,12 +3386,8 @@ Shader "Polyart/Dreamscape/URP/Grass"
 					o.shadowCoord = GetShadowCoord( vertexInput );
 				#endif
 
-					o.clipPos = positionCS;
-
-				#if defined(ASE_NEEDS_FRAG_SCREEN_POSITION)
-					o.screenPos = ComputeScreenPos(positionCS);
-				#endif
-
+				o.clipPos = positionCS;
+				o.clipPosV = positionCS;
 				return o;
 			}
 
@@ -3477,12 +3483,6 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			}
 			#endif
 
-			#if defined(ASE_EARLY_Z_DEPTH_OPTIMIZE)
-				#define ASE_SV_DEPTH SV_DepthLessEqual
-			#else
-				#define ASE_SV_DEPTH SV_Depth
-			#endif
-
 			FragmentOutput frag ( VertexOutput IN
 								#ifdef ASE_DEPTH_WRITE_ON
 								,out float outputDepth : ASE_SV_DEPTH
@@ -3511,9 +3511,8 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float3 WorldViewDirection = _WorldSpaceCameraPos.xyz  - WorldPosition;
 				float4 ShadowCoords = float4( 0, 0, 0, 0 );
 
-				#if defined(ASE_NEEDS_FRAG_SCREEN_POSITION)
-					float4 ScreenPos = IN.screenPos;
-				#endif
+				float4 ClipPos = IN.clipPosV;
+				float4 ScreenPos = ComputeScreenPos( IN.clipPosV );
 
 				float2 NormalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
 
@@ -3532,6 +3531,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float2 uv_MainTex = IN.ase_texcoord9.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 				float4 tex2DNode22 = tex2D( _MainTex, uv_MainTex );
 				float4 vColor27 = ( lerpResult23 * tex2DNode22 );
+				float4 clampResult219 = clamp( vColor27 , float4( 0,0,0,0 ) , float4( 1,1,1,0 ) );
 				
 				float3 temp_cast_1 = (_FoliageSpecular).xxx;
 				
@@ -3559,7 +3559,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				#endif
 				
 
-				float3 BaseColor = vColor27.rgb;
+				float3 BaseColor = clampResult219.rgb;
 				float3 Normal = float3(0, 0, 1);
 				float3 Emission = 0;
 				float3 Specular = temp_cast_1;
@@ -3576,7 +3576,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				float3 Translucency = 1;
 
 				#ifdef ASE_DEPTH_WRITE_ON
-					float DepthValue = 0;
+					float DepthValue = IN.clipPos.z;
 				#endif
 
 				#ifdef _ALPHATEST_ON
@@ -3684,7 +3684,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#define ASE_FOG 1
 			#define _SPECULAR_SETUP 1
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma vertex vert
@@ -3705,20 +3705,28 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
-			
+			#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
+			#pragma shader_feature_local _USEGLOBALWINDSETTINGS_ON
+			#pragma shader_feature_local _USEVERTEXCOLOR_ON
+			#pragma shader_feature _USEDITHERING_ON
+			#pragma shader_feature_local _USEGLOBALSETTING_ON
+
 
 			struct VertexInput
 			{
 				float4 vertex : POSITION;
 				float3 ase_normal : NORMAL;
-				
+				float4 ase_texcoord : TEXCOORD0;
+				float4 ase_color : COLOR;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct VertexOutput
 			{
 				float4 clipPos : SV_POSITION;
-				
+				float4 ase_texcoord : TEXCOORD0;
+				float4 ase_texcoord1 : TEXCOORD1;
+				float4 ase_texcoord2 : TEXCOORD2;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
@@ -3774,7 +3782,15 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				int _PassValue;
 			#endif
 
-			
+			sampler2D _WindNoiseTexture;
+			float WindNoise01;
+			float WindNoise01Multiplier;
+			float WindNoise02;
+			float WindNoise02Multiplier;
+			sampler2D _MainTex;
+			float DitherBottomLevel;
+			float DitherFade;
+
 
 			//#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl"
 			//#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl"
@@ -3784,6 +3800,40 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			//#endif
 
 			
+			float4 SampleGradient( Gradient gradient, float time )
+			{
+				float3 color = gradient.colors[0].rgb;
+				UNITY_UNROLL
+				for (int c = 1; c < 8; c++)
+				{
+				float colorPos = saturate((time - gradient.colors[c-1].w) / ( 0.00001 + (gradient.colors[c].w - gradient.colors[c-1].w)) * step(c, gradient.colorsLength-1));
+				color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
+				}
+				#ifndef UNITY_COLORSPACE_GAMMA
+				color = SRGBToLinear(color);
+				#endif
+				float alpha = gradient.alphas[0].x;
+				UNITY_UNROLL
+				for (int a = 1; a < 8; a++)
+				{
+				float alphaPos = saturate((time - gradient.alphas[a-1].y) / ( 0.00001 + (gradient.alphas[a].y - gradient.alphas[a-1].y)) * step(a, gradient.alphasLength-1));
+				alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
+				}
+				return float4(color, alpha);
+			}
+			
+			inline float Dither4x4Bayer( int x, int y )
+			{
+				const float dither[ 16 ] = {
+			 1,  9,  3, 11,
+			13,  5, 15,  7,
+			 4, 12,  2, 10,
+			16,  8, 14,  6 };
+				int r = y * 4 + x;
+				return dither[r] / 16; // same # of instructions as pre-dividing due to compiler magic
+			}
+			
+
 			struct SurfaceDescription
 			{
 				float Alpha;
@@ -3799,7 +3849,51 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				float4 color128 = IsGammaSpace() ? float4(0,0,0,0) : float4(0,0,0,0);
+				float3 ase_worldPos = TransformObjectToWorld( (v.vertex).xyz );
+				#ifdef _USEGLOBALWINDSETTINGS_ON
+				float staticSwitch30_g12 = WindNoise01;
+				#else
+				float staticSwitch30_g12 = _WindNoise01Size;
+				#endif
+				#ifdef _USEGLOBALWINDSETTINGS_ON
+				float staticSwitch31_g12 = WindNoise01Multiplier;
+				#else
+				float staticSwitch31_g12 = _WindNoise01Multiplier;
+				#endif
+				#ifdef _USEGLOBALWINDSETTINGS_ON
+				float staticSwitch33_g12 = WindNoise02;
+				#else
+				float staticSwitch33_g12 = _WindNoise02Size;
+				#endif
+				#ifdef _USEGLOBALWINDSETTINGS_ON
+				float staticSwitch38_g12 = WindNoise02Multiplier;
+				#else
+				float staticSwitch38_g12 = _WindNoise02Multiplier;
+				#endif
+				float4 lerpResult27_g12 = lerp( ( tex2Dlod( _WindNoiseTexture, float4( ( ( float2( 0,0.2 ) * _TimeParameters.x ) + ( (ase_worldPos).xz / staticSwitch30_g12 ) ), 0, 0.0) ) * staticSwitch31_g12 ) , ( tex2Dlod( _WindNoiseTexture, float4( ( ( float2( 0,0.1 ) * _TimeParameters.x ) + ( (ase_worldPos).xz / staticSwitch33_g12 ) ), 0, 0.0) ) * staticSwitch38_g12 ) , 0.5);
+				Gradient gradient111 = NewGradient( 0, 2, 2, float4( 0, 0, 0, 0 ), float4( 1, 1, 1, 0.6294194 ), 0, 0, 0, 0, 0, 0, float2( 1, 0 ), float2( 1, 1 ), 0, 0, 0, 0, 0, 0 );
+				float2 texCoord110 = v.ase_texcoord.xy * float2( 1,1 ) + float2( 0,0 );
+				float saferPower113 = abs( SampleGradient( gradient111, texCoord110.y ).r );
+				float saferPower194 = abs( ( v.ase_color.r + _VertexColorOffset ) );
+				float vVertexColor197 = pow( saferPower194 , _VertexColorGradient );
+				#ifdef _USEVERTEXCOLOR_ON
+				float staticSwitch191 = vVertexColor197;
+				#else
+				float staticSwitch191 = pow( saferPower113 , _LockPositionGradient );
+				#endif
+				float4 lerpResult108 = lerp( color128 , lerpResult27_g12 , staticSwitch191);
+				float4 vWind116 = lerpResult108;
 				
+				float4 ase_clipPos = TransformObjectToHClip((v.vertex).xyz);
+				float4 screenPos = ComputeScreenPos(ase_clipPos);
+				o.ase_texcoord1 = screenPos;
+				
+				o.ase_texcoord.xy = v.ase_texcoord.xy;
+				o.ase_texcoord2 = v.vertex;
+				
+				//setting value to unused interpolator channels and avoid initialization warnings
+				o.ase_texcoord.zw = 0;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					float3 defaultVertexValue = v.vertex.xyz;
@@ -3807,7 +3901,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = defaultVertexValue;
+				float3 vertexValue = vWind116.rgb;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.vertex.xyz = vertexValue;
@@ -3829,7 +3923,9 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			{
 				float4 vertex : INTERNALTESSPOS;
 				float3 ase_normal : NORMAL;
-				
+				float4 ase_texcoord : TEXCOORD0;
+				float4 ase_color : COLOR;
+
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
@@ -3846,7 +3942,8 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				o.vertex = v.vertex;
 				o.ase_normal = v.ase_normal;
-				
+				o.ase_texcoord = v.ase_texcoord;
+				o.ase_color = v.ase_color;
 				return o;
 			}
 
@@ -3885,7 +3982,8 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				VertexInput o = (VertexInput) 0;
 				o.vertex = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex * bary.z;
 				o.ase_normal = patch[0].ase_normal * bary.x + patch[1].ase_normal * bary.y + patch[2].ase_normal * bary.z;
-				
+				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
+				o.ase_color = patch[0].ase_color * bary.x + patch[1].ase_color * bary.y + patch[2].ase_color * bary.z;
 				#if defined(ASE_PHONG_TESSELLATION)
 				float3 pp[3];
 				for (int i = 0; i < 3; ++i)
@@ -3907,9 +4005,34 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			{
 				SurfaceDescription surfaceDescription = (SurfaceDescription)0;
 
+				float2 uv_MainTex = IN.ase_texcoord.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				float4 tex2DNode22 = tex2D( _MainTex, uv_MainTex );
+				float vAlpha125 = tex2DNode22.a;
+				float4 screenPos = IN.ase_texcoord1;
+				float4 ase_screenPosNorm = screenPos / screenPos.w;
+				ase_screenPosNorm.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_screenPosNorm.z : ase_screenPosNorm.z * 0.5 + 0.5;
+				float2 clipScreen8_g11 = ase_screenPosNorm.xy * _ScreenParams.xy;
+				float dither8_g11 = Dither4x4Bayer( fmod(clipScreen8_g11.x, 4), fmod(clipScreen8_g11.y, 4) );
+				#ifdef _USEGLOBALSETTING_ON
+				float staticSwitch12_g11 = DitherBottomLevel;
+				#else
+				float staticSwitch12_g11 = _DitherBottomLevel;
+				#endif
+				#ifdef _USEGLOBALSETTING_ON
+				float staticSwitch11_g11 = DitherFade;
+				#else
+				float staticSwitch11_g11 = _DitherFade;
+				#endif
+				dither8_g11 = step( dither8_g11, saturate( ( ( IN.ase_texcoord2.xyz.y + staticSwitch12_g11 ) * ( staticSwitch11_g11 * 2 ) ) ) );
+				float vTerrainDither181 = dither8_g11;
+				#ifdef _USEDITHERING_ON
+				float staticSwitch182 = ( vAlpha125 * vTerrainDither181 );
+				#else
+				float staticSwitch182 = vAlpha125;
+				#endif
 				
 
-				surfaceDescription.Alpha = 1;
+				surfaceDescription.Alpha = staticSwitch182;
 				surfaceDescription.AlphaClipThreshold = 0.5;
 
 				#if _ALPHATEST_ON
@@ -3947,7 +4070,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#define ASE_FOG 1
 			#define _SPECULAR_SETUP 1
 			#define _ALPHATEST_ON 1
-			#define ASE_SRP_VERSION 120108
+			#define ASE_SRP_VERSION 120110
 
 
 			#pragma vertex vert
@@ -3968,20 +4091,28 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
-			
+			#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
+			#pragma shader_feature_local _USEGLOBALWINDSETTINGS_ON
+			#pragma shader_feature_local _USEVERTEXCOLOR_ON
+			#pragma shader_feature _USEDITHERING_ON
+			#pragma shader_feature_local _USEGLOBALSETTING_ON
+
 
 			struct VertexInput
 			{
 				float4 vertex : POSITION;
 				float3 ase_normal : NORMAL;
-				
+				float4 ase_texcoord : TEXCOORD0;
+				float4 ase_color : COLOR;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct VertexOutput
 			{
 				float4 clipPos : SV_POSITION;
-				
+				float4 ase_texcoord : TEXCOORD0;
+				float4 ase_texcoord1 : TEXCOORD1;
+				float4 ase_texcoord2 : TEXCOORD2;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
@@ -4037,7 +4168,15 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				int _PassValue;
 			#endif
 
-			
+			sampler2D _WindNoiseTexture;
+			float WindNoise01;
+			float WindNoise01Multiplier;
+			float WindNoise02;
+			float WindNoise02Multiplier;
+			sampler2D _MainTex;
+			float DitherBottomLevel;
+			float DitherFade;
+
 
 			//#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl"
 			//#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl"
@@ -4047,6 +4186,40 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			//#endif
 
 			
+			float4 SampleGradient( Gradient gradient, float time )
+			{
+				float3 color = gradient.colors[0].rgb;
+				UNITY_UNROLL
+				for (int c = 1; c < 8; c++)
+				{
+				float colorPos = saturate((time - gradient.colors[c-1].w) / ( 0.00001 + (gradient.colors[c].w - gradient.colors[c-1].w)) * step(c, gradient.colorsLength-1));
+				color = lerp(color, gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), gradient.type));
+				}
+				#ifndef UNITY_COLORSPACE_GAMMA
+				color = SRGBToLinear(color);
+				#endif
+				float alpha = gradient.alphas[0].x;
+				UNITY_UNROLL
+				for (int a = 1; a < 8; a++)
+				{
+				float alphaPos = saturate((time - gradient.alphas[a-1].y) / ( 0.00001 + (gradient.alphas[a].y - gradient.alphas[a-1].y)) * step(a, gradient.alphasLength-1));
+				alpha = lerp(alpha, gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), gradient.type));
+				}
+				return float4(color, alpha);
+			}
+			
+			inline float Dither4x4Bayer( int x, int y )
+			{
+				const float dither[ 16 ] = {
+			 1,  9,  3, 11,
+			13,  5, 15,  7,
+			 4, 12,  2, 10,
+			16,  8, 14,  6 };
+				int r = y * 4 + x;
+				return dither[r] / 16; // same # of instructions as pre-dividing due to compiler magic
+			}
+			
+
 			struct SurfaceDescription
 			{
 				float Alpha;
@@ -4062,7 +4235,51 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+				float4 color128 = IsGammaSpace() ? float4(0,0,0,0) : float4(0,0,0,0);
+				float3 ase_worldPos = TransformObjectToWorld( (v.vertex).xyz );
+				#ifdef _USEGLOBALWINDSETTINGS_ON
+				float staticSwitch30_g12 = WindNoise01;
+				#else
+				float staticSwitch30_g12 = _WindNoise01Size;
+				#endif
+				#ifdef _USEGLOBALWINDSETTINGS_ON
+				float staticSwitch31_g12 = WindNoise01Multiplier;
+				#else
+				float staticSwitch31_g12 = _WindNoise01Multiplier;
+				#endif
+				#ifdef _USEGLOBALWINDSETTINGS_ON
+				float staticSwitch33_g12 = WindNoise02;
+				#else
+				float staticSwitch33_g12 = _WindNoise02Size;
+				#endif
+				#ifdef _USEGLOBALWINDSETTINGS_ON
+				float staticSwitch38_g12 = WindNoise02Multiplier;
+				#else
+				float staticSwitch38_g12 = _WindNoise02Multiplier;
+				#endif
+				float4 lerpResult27_g12 = lerp( ( tex2Dlod( _WindNoiseTexture, float4( ( ( float2( 0,0.2 ) * _TimeParameters.x ) + ( (ase_worldPos).xz / staticSwitch30_g12 ) ), 0, 0.0) ) * staticSwitch31_g12 ) , ( tex2Dlod( _WindNoiseTexture, float4( ( ( float2( 0,0.1 ) * _TimeParameters.x ) + ( (ase_worldPos).xz / staticSwitch33_g12 ) ), 0, 0.0) ) * staticSwitch38_g12 ) , 0.5);
+				Gradient gradient111 = NewGradient( 0, 2, 2, float4( 0, 0, 0, 0 ), float4( 1, 1, 1, 0.6294194 ), 0, 0, 0, 0, 0, 0, float2( 1, 0 ), float2( 1, 1 ), 0, 0, 0, 0, 0, 0 );
+				float2 texCoord110 = v.ase_texcoord.xy * float2( 1,1 ) + float2( 0,0 );
+				float saferPower113 = abs( SampleGradient( gradient111, texCoord110.y ).r );
+				float saferPower194 = abs( ( v.ase_color.r + _VertexColorOffset ) );
+				float vVertexColor197 = pow( saferPower194 , _VertexColorGradient );
+				#ifdef _USEVERTEXCOLOR_ON
+				float staticSwitch191 = vVertexColor197;
+				#else
+				float staticSwitch191 = pow( saferPower113 , _LockPositionGradient );
+				#endif
+				float4 lerpResult108 = lerp( color128 , lerpResult27_g12 , staticSwitch191);
+				float4 vWind116 = lerpResult108;
 				
+				float4 ase_clipPos = TransformObjectToHClip((v.vertex).xyz);
+				float4 screenPos = ComputeScreenPos(ase_clipPos);
+				o.ase_texcoord1 = screenPos;
+				
+				o.ase_texcoord.xy = v.ase_texcoord.xy;
+				o.ase_texcoord2 = v.vertex;
+				
+				//setting value to unused interpolator channels and avoid initialization warnings
+				o.ase_texcoord.zw = 0;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					float3 defaultVertexValue = v.vertex.xyz;
@@ -4070,7 +4287,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = defaultVertexValue;
+				float3 vertexValue = vWind116.rgb;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.vertex.xyz = vertexValue;
@@ -4091,7 +4308,9 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			{
 				float4 vertex : INTERNALTESSPOS;
 				float3 ase_normal : NORMAL;
-				
+				float4 ase_texcoord : TEXCOORD0;
+				float4 ase_color : COLOR;
+
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
@@ -4108,7 +4327,8 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				o.vertex = v.vertex;
 				o.ase_normal = v.ase_normal;
-				
+				o.ase_texcoord = v.ase_texcoord;
+				o.ase_color = v.ase_color;
 				return o;
 			}
 
@@ -4147,7 +4367,8 @@ Shader "Polyart/Dreamscape/URP/Grass"
 				VertexInput o = (VertexInput) 0;
 				o.vertex = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex * bary.z;
 				o.ase_normal = patch[0].ase_normal * bary.x + patch[1].ase_normal * bary.y + patch[2].ase_normal * bary.z;
-				
+				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
+				o.ase_color = patch[0].ase_color * bary.x + patch[1].ase_color * bary.y + patch[2].ase_color * bary.z;
 				#if defined(ASE_PHONG_TESSELLATION)
 				float3 pp[3];
 				for (int i = 0; i < 3; ++i)
@@ -4169,9 +4390,34 @@ Shader "Polyart/Dreamscape/URP/Grass"
 			{
 				SurfaceDescription surfaceDescription = (SurfaceDescription)0;
 
+				float2 uv_MainTex = IN.ase_texcoord.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				float4 tex2DNode22 = tex2D( _MainTex, uv_MainTex );
+				float vAlpha125 = tex2DNode22.a;
+				float4 screenPos = IN.ase_texcoord1;
+				float4 ase_screenPosNorm = screenPos / screenPos.w;
+				ase_screenPosNorm.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_screenPosNorm.z : ase_screenPosNorm.z * 0.5 + 0.5;
+				float2 clipScreen8_g11 = ase_screenPosNorm.xy * _ScreenParams.xy;
+				float dither8_g11 = Dither4x4Bayer( fmod(clipScreen8_g11.x, 4), fmod(clipScreen8_g11.y, 4) );
+				#ifdef _USEGLOBALSETTING_ON
+				float staticSwitch12_g11 = DitherBottomLevel;
+				#else
+				float staticSwitch12_g11 = _DitherBottomLevel;
+				#endif
+				#ifdef _USEGLOBALSETTING_ON
+				float staticSwitch11_g11 = DitherFade;
+				#else
+				float staticSwitch11_g11 = _DitherFade;
+				#endif
+				dither8_g11 = step( dither8_g11, saturate( ( ( IN.ase_texcoord2.xyz.y + staticSwitch12_g11 ) * ( staticSwitch11_g11 * 2 ) ) ) );
+				float vTerrainDither181 = dither8_g11;
+				#ifdef _USEDITHERING_ON
+				float staticSwitch182 = ( vAlpha125 * vTerrainDither181 );
+				#else
+				float staticSwitch182 = vAlpha125;
+				#endif
 				
 
-				surfaceDescription.Alpha = 1;
+				surfaceDescription.Alpha = staticSwitch182;
 				surfaceDescription.AlphaClipThreshold = 0.5;
 
 				#if _ALPHATEST_ON
@@ -4204,7 +4450,7 @@ Shader "Polyart/Dreamscape/URP/Grass"
 	Fallback "Hidden/InternalErrorShader"
 }
 /*ASEBEGIN
-Version=19105
+Version=19200
 Node;AmplifyShaderEditor.CommentaryNode;31;-3996.417,-1390.987;Inherit;False;2609.802;1011.224;Comment;24;27;24;125;23;22;21;132;20;17;140;19;18;135;15;16;139;199;198;14;138;12;137;136;13;Color;1,1,1,1;0;0
 Node;AmplifyShaderEditor.RangedFloatNode;13;-3852.183,-726.2175;Inherit;False;Property;_ColorBottomLevel;Color Bottom Level;6;0;Create;True;0;0;0;False;0;False;0;-0.66;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.WorldPosInputsNode;136;-3926.494,-1064.928;Inherit;False;0;4;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3
@@ -4264,7 +4510,6 @@ Node;AmplifyShaderEditor.RegisterLocalVarNode;27;-1596.372,-809.6332;Inherit;Fal
 Node;AmplifyShaderEditor.StaticSwitch;182;-738.8497,273.6953;Inherit;False;Property;_UseDithering;Use Dithering?;22;0;Create;True;0;0;0;False;1;Header(Dithering);False;0;0;0;True;;Toggle;2;Key0;Key1;Create;False;True;All;9;1;FLOAT;0;False;0;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;4;FLOAT;0;False;5;FLOAT;0;False;6;FLOAT;0;False;7;FLOAT;0;False;8;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.GetLocalVarNode;122;-690.1942,382.9964;Inherit;False;116;vWind;1;0;OBJECT;;False;1;COLOR;0
 Node;AmplifyShaderEditor.RangedFloatNode;200;-790.3269,-84.21375;Inherit;False;Property;_MaskClip;Mask Clip;10;0;Create;True;0;0;0;False;0;False;0.5;0;0;1;0;1;FLOAT;0
-Node;AmplifyShaderEditor.GetLocalVarNode;29;-786.9415,32.68401;Inherit;False;27;vColor;1;0;OBJECT;;False;1;COLOR;0
 Node;AmplifyShaderEditor.RangedFloatNode;215;-660.5521,473.0726;Inherit;False;Constant;_Float0;Float 0;23;0;Create;True;0;0;0;False;0;False;0.5;0;0;0;0;1;FLOAT;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;212;-447.4691,37.94351;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;1;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;Universal2D;0;5;Universal2D;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;255;False;;255;False;;255;False;;7;False;;1;False;;1;False;;1;False;;7;False;;1;False;;1;False;;1;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;3;True;12;all;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=Universal2D;False;False;0;Hidden/InternalErrorShader;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;214;-447.4691,37.94351;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;1;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;GBuffer;0;7;GBuffer;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;255;False;;255;False;;255;False;;7;False;;1;False;;1;False;;1;False;;7;False;;1;False;;1;False;;1;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;3;True;12;all;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;255;False;;255;False;;255;False;;7;False;;1;False;;1;False;;1;False;;7;False;;1;False;;1;False;;1;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalGBuffer;False;False;0;Hidden/InternalErrorShader;0;0;Standard;0;False;0
@@ -4275,10 +4520,12 @@ Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;211;-447.4691,37.94351;Floa
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;213;-447.4691,37.94351;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;1;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;DepthNormals;0;6;DepthNormals;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;255;False;;255;False;;255;False;;7;False;;1;False;;1;False;;1;False;;7;False;;1;False;;1;False;;1;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;3;True;12;all;0;False;True;1;1;False;;0;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=DepthNormals;False;False;0;Hidden/InternalErrorShader;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;216;-447.4691,117.9435;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;1;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;SceneSelectionPass;0;8;SceneSelectionPass;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;3;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;2;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=SceneSelectionPass;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;217;-447.4691,117.9435;Float;False;False;-1;2;UnityEditor.ShaderGraphLitGUI;0;1;New Amplify Shader;94348b07e5e8bab40bd6c8a1e3df54cd;True;ScenePickingPass;0;9;ScenePickingPass;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;3;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=Picking;False;False;0;;0;0;Standard;0;False;0
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;208;-447.4691,37.94351;Float;False;True;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;Polyart/Dreamscape/URP/Grass;94348b07e5e8bab40bd6c8a1e3df54cd;True;Forward;0;1;Forward;19;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;255;False;;255;False;;255;False;;7;False;;1;False;;1;False;;1;False;;7;False;;1;False;;1;False;;1;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;3;True;12;all;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;255;False;;255;False;;255;False;;7;False;;1;False;;1;False;;1;False;;7;False;;1;False;;1;False;;1;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForward;False;False;0;Hidden/InternalErrorShader;0;0;Standard;41;Workflow;0;638126632975242713;Surface;0;0;  Refraction Model;0;0;  Blend;0;0;Two Sided;1;0;Fragment Normal Space,InvertActionOnDeselection;0;0;Forward Only;0;0;Transmission;0;0;  Transmission Shadow;0.5,False,;0;Translucency;0;0;  Translucency Strength;1,False,;0;  Normal Distortion;0.5,False,;0;  Scattering;2,False,;0;  Direct;0.9,False,;0;  Ambient;0.1,False,;0;  Shadow;0.5,False,;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;Receive Shadows;1;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;_FinalColorxAlpha;0;0;Meta Pass;1;0;Override Baked GI;0;0;Extra Pre Pass;0;0;DOTS Instancing;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Write Depth;0;0;  Early Z;0;0;Vertex Position,InvertActionOnDeselection;1;0;Debug Display;0;0;Clear Coat;0;0;0;10;False;True;True;True;True;True;True;True;True;True;False;;False;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;208;-447.4691,37.94351;Float;False;True;-1;2;UnityEditor.ShaderGraphLitGUI;0;12;Polyart/Dreamscape/URP/Grass;94348b07e5e8bab40bd6c8a1e3df54cd;True;Forward;0;1;Forward;20;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;255;False;;255;False;;255;False;;7;False;;1;False;;1;False;;1;False;;7;False;;1;False;;1;False;;1;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Lit;True;3;True;12;all;0;False;True;1;1;False;;0;False;;1;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;255;False;;255;False;;255;False;;7;False;;1;False;;1;False;;1;False;;7;False;;1;False;;1;False;;1;False;;False;True;1;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForward;False;False;0;Hidden/InternalErrorShader;0;0;Standard;41;Workflow;0;638126632975242713;Surface;0;0;  Refraction Model;0;0;  Blend;0;0;Two Sided;1;0;Fragment Normal Space,InvertActionOnDeselection;0;0;Forward Only;0;0;Transmission;0;0;  Transmission Shadow;0.5,False,;0;Translucency;0;0;  Translucency Strength;1,False,;0;  Normal Distortion;0.5,False,;0;  Scattering;2,False,;0;  Direct;0.9,False,;0;  Ambient;0.1,False,;0;  Shadow;0.5,False,;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;Receive Shadows;1;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;_FinalColorxAlpha;0;0;Meta Pass;1;0;Override Baked GI;0;0;Extra Pre Pass;0;0;DOTS Instancing;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Write Depth;0;0;  Early Z;0;0;Vertex Position,InvertActionOnDeselection;1;0;Debug Display;0;0;Clear Coat;0;0;0;10;False;True;True;True;True;True;True;True;True;True;False;;False;0
 Node;AmplifyShaderEditor.OneMinusNode;206;-671.4158,198.1579;Inherit;False;1;0;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.RangedFloatNode;162;-948.6069,193.5835;Inherit;False;Property;_FoliageRoughness;Foliage Roughness;8;0;Create;True;0;0;0;False;0;False;0.1;0.1;0;1;0;1;FLOAT;0
 Node;AmplifyShaderEditor.RangedFloatNode;218;-947.8562,108.6381;Inherit;False;Property;_FoliageSpecular;Foliage Specular;9;0;Create;True;0;0;0;False;0;False;0.1;0.1;-1;1;0;1;FLOAT;0
+Node;AmplifyShaderEditor.GetLocalVarNode;29;-906.9415,27.68401;Inherit;False;27;vColor;1;0;OBJECT;;False;1;COLOR;0
+Node;AmplifyShaderEditor.ClampOpNode;219;-606.605,15.80008;Inherit;False;3;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;2;COLOR;1,1,1,0;False;1;COLOR;0
 WireConnection;138;0;136;0
 WireConnection;138;1;137;0
 WireConnection;198;0;13;0
@@ -4328,12 +4575,13 @@ WireConnection;116;0;108;0
 WireConnection;27;0;24;0
 WireConnection;182;1;126;0
 WireConnection;182;0;161;0
-WireConnection;208;0;29;0
+WireConnection;208;0;219;0
 WireConnection;208;9;218;0
 WireConnection;208;4;206;0
 WireConnection;208;6;182;0
 WireConnection;208;7;215;0
 WireConnection;208;8;122;0
 WireConnection;206;0;162;0
+WireConnection;219;0;29;0
 ASEEND*/
-//CHKSM=93FD94BEAA86261D62D88581BE0E68DB2558B30C
+//CHKSM=5DFE73D42A088092610265A2F173D537274DA594
