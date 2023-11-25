@@ -3,7 +3,8 @@
 public abstract class ServiceCustom : MonoBehaviour
 {
     private bool canRegister;
-    private void Start()
+
+    public virtual void Start()
     {
         if (Validation())
         {
@@ -13,6 +14,13 @@ public abstract class ServiceCustom : MonoBehaviour
 
         RegisterService();
         canRegister = true;
+        DontDestroyOnLoad(gameObject);
+        CustomStart();
+    }
+
+    protected virtual void CustomStart()
+    {
+        
     }
 
     protected abstract bool Validation();

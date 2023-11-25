@@ -1,10 +1,15 @@
+using SL;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class LoadingScenes : MonoBehaviour
 {
-    public void LoadScene(int sceneIndex)
+    [SerializeField] private StageButton[] stageButtons;
+
+    private void Start()
     {
-        SceneManager.LoadScene(sceneIndex);
+        foreach (var stageButton in stageButtons)
+        {
+            stageButton.Button.onClick.AddListener(() => ServiceLocator.Instance.GetService<IRulesOfGameService>().LoadScene(stageButton.StagesInfo));
+        }
     }
 }
