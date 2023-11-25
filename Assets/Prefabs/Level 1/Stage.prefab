@@ -282,7 +282,7 @@ PrefabInstance:
     - target: {fileID: 114095996348215620, guid: 463ceddd03fde314fa21f768b518a0cb,
         type: 3}
       propertyPath: StayOnTheMostUsedQualitySettingsAfter
-      value: 5
+      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 463ceddd03fde314fa21f768b518a0cb, type: 3}
