@@ -13,19 +13,30 @@ public class Fade : ServiceCustom, IFade
     {
         StartFade(1, 0, delayFade);
     }
-    
+
+    public void Out(Action action)
+    {
+        StartFade(1, 0, delayFade, action);
+    }
+
     public void In()
     {
         StartFade(0, 1, delayFade);
     }
 
-    private void StartFade(int start, int end, float delay)
+    public void In(Action action)
     {
-        StartCoroutine(FadeImage(start, end, delay));
+        StartFade(0, 1, delayFade, action);
     }
 
-    private IEnumerator FadeImage(int start, int end, float delay)
+    private void StartFade(int start, int end, float delay, Action callback = null)
     {
+        StartCoroutine(FadeImage(start, end, delay, callback));
+    }
+
+    private IEnumerator FadeImage(int start, int end, float delay, Action callback = null)
+    {
+        panel.raycastTarget = true;
         var color = panel.color;
         float time = 0;
 
@@ -38,6 +49,10 @@ public class Fade : ServiceCustom, IFade
             panel.color = color;
             yield return null;
         }
+        color.a = end;
+        panel.color = color;
+        panel.raycastTarget = false;
+        callback?.Invoke();
     }
 
     protected override bool Validation()
@@ -48,6 +63,7 @@ public class Fade : ServiceCustom, IFade
     protected override void RegisterService()
     {
         ServiceLocator.Instance.RegisterService<IFade>(this);
+        panel.raycastTarget = false;
     }
 
     protected override void RemoveService()

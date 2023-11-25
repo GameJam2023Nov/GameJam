@@ -1,7 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using SL;
 using UnityEngine;
 
 public class ValidationOfVictory : MonoBehaviour
@@ -24,25 +22,24 @@ public class ValidationOfVictory : MonoBehaviour
             while (!nutria.ArriveToDestiny())
             {
                 yield return new WaitForSeconds(0.1f);
+                //Debug.Log($"Wait {_canGoTo}");
             }
         }
-
+        nutria.GoTo(destiny, anchorPoint);
+        /*
         if (!_canGoTo)
         {
-            nutria.GoTo(destiny, anchorPoint);
             _nutrias.Add(nutria.gameObject);
         }
         else
         {
-            //remove nutrua to list
-            //_nutrias.Remove(nutria.gameObject);
             nutria.Deleted();
             if(_nutrias.Where(o => o.GetComponent<Nutria>().WasDeleted()).ToList().Count <= 0)
             {
                 state++;
                 ServiceLocator.Instance.GetService<IRulesOfGame>().Win();
             }
-        }
+        }*/
     }
 
     public void AddFinalDestiny(GameObject tierraFirme)

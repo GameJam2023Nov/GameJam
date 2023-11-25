@@ -5,7 +5,13 @@ using UnityEngine;
 public class ForceOfRiver : MonoBehaviour
 {
     [SerializeField] private float force;
-    private List<Nutria> _nutrias = new();
+    private List<Nutria> _nutrias;
+
+    private void Awake()
+    {
+        _nutrias = new List<Nutria>();
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("Nutria") && other.gameObject.CompareTag("Nutria"))
