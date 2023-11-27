@@ -955,7 +955,7 @@ MonoBehaviour:
   panel: {fileID: 5454643878630588437}
   panelToRestartOrGoToHome: {fileID: 2088011863}
   messageText: {fileID: 5454643878856381279}
-  messageTextToRestartOrGoToHome: {fileID: 0}
+  messageTextToRestartOrGoToHome: {fileID: 671471019}
   restartButton: {fileID: 282049253}
   goToHomeButton: {fileID: 456852368}
 --- !u!1 &5454643878630588437

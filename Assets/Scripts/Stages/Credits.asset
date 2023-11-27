@@ -13,3 +13,5 @@ MonoBehaviour:
   m_Name: Credits
   m_EditorClassIdentifier: 
   sceneIndex: 5
+  hasCompleted: 0
+  isLocked: 1

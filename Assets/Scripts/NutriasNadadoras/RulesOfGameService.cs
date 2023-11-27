@@ -4,33 +4,58 @@ using UnityEngine.SceneManagement;
 
 public class RulesOfGameService : ServiceCustom, IRulesOfGameService
 {
-    private int currentStage = 1;
+    [SerializeField] private StagesInfo[] _stagesInfos;
+    private int _currentStageIndex;
     public void LoadScene(StagesInfo stagesInfo)
     {
-        if(currentStage < stagesInfo.SceneIndex)
+        _currentStageIndex = 1;
+        //get last stage completed
+        foreach (var stageInfo in _stagesInfos)
         {
-            //Message To User "You have not completed the previous stage"
-            Debug.Log("You have not completed the previous stage");
-            ServiceLocator.Instance.GetService<IMessages>().ShowMessage("You have not completed the previous stage", 2f);
+            if(stageInfo.HasCompleted)
+            {
+                _currentStageIndex++;
+            }
+        }
+        if (!stagesInfo.IsStage)
+        {
+            ServiceLocator.Instance.GetService<IFade>().In(() =>
+            {
+                SceneManager.LoadScene(stagesInfo.SceneIndex);
+            });
             return;
         }
         if(stagesInfo.HasCompleted)
         {
-            //Message To User "You have already completed this stage"
-            Debug.Log("You have already completed this stage");
             ServiceLocator.Instance.GetService<IMessages>().ShowMessage("You have already completed this stage", 2f);
             return;
         }
-        ServiceLocator.Instance.GetService<IFade>().In(() =>
+        if(_currentStageIndex == stagesInfo.SceneIndex)
         {
-            SceneManager.LoadScene(stagesInfo.SceneIndex);
-        });
+            ServiceLocator.Instance.GetService<IFade>().In(() =>
+            {
+                SceneManager.LoadScene(stagesInfo.SceneIndex);
+            });
+            return;
+        }
+        ServiceLocator.Instance.GetService<IMessages>().ShowMessage("You have not completed the previous stage", 2f);
     }
     
     public void CompleteStage(StagesInfo stagesInfo)
     {
         stagesInfo.CompleteStage();
-        currentStage++;
+    }
+
+    public bool HasCompletedAllLevels()
+    {
+        foreach (var stagesInfo in _stagesInfos)
+        {
+            if (!stagesInfo.HasCompleted && stagesInfo.IsStage)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     protected override bool Validation()
@@ -46,5 +71,9 @@ public class RulesOfGameService : ServiceCustom, IRulesOfGameService
     protected override void RemoveService()
     {
         ServiceLocator.Instance.RemoveService<IRulesOfGameService>();
+        foreach (var stagesInfo in _stagesInfos)
+        {
+            stagesInfo.ResetStage();
+        }
     }
 }

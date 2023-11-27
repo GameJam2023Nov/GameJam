@@ -7,9 +7,9 @@ using UnityEngine.UI;
 
 public class Messages : ServiceCustom, IMessages
 {
-    [SerializeField] private GameObject panel, panelToRestartOrGoToHome;
-    [SerializeField] private TextMeshProUGUI messageText, messageTextToRestartOrGoToHome;
-    [SerializeField] private Button restartButton, goToHomeButton;
+    [SerializeField] private GameObject panel, panelToRestartOrGoToHome, panelGameCompleted;
+    [SerializeField] private TextMeshProUGUI messageText, messageTextToRestartOrGoToHome, messageTextGameCompleted;
+    [SerializeField] private Button restartButton, goToHomeButton, goToCreditsButton;
     protected override bool Validation()
     {
         return FindObjectsOfType<Messages>().Length > 1;
@@ -45,6 +45,17 @@ public class Messages : ServiceCustom, IMessages
         {
             action1?.Invoke();
             panelToRestartOrGoToHome.SetActive(false);
+        });
+    }
+
+    public void ShowGameCompleted(string title, Action action)
+    {
+        messageTextGameCompleted.text = title;
+        panelGameCompleted.SetActive(true);
+        goToCreditsButton.onClick.AddListener(() =>
+        {
+            action?.Invoke();
+            panelGameCompleted.SetActive(false);
         });
     }
 

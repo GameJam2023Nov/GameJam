@@ -13,3 +13,5 @@ MonoBehaviour:
   m_Name: level 4
   m_EditorClassIdentifier: 
   sceneIndex: 4
+  hasCompleted: 1
+  isLocked: 0

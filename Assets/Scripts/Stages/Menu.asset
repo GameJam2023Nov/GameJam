@@ -12,3 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7ff5592a984422891d9436fe77b417c, type: 3}
   m_Name: Menu
   m_EditorClassIdentifier: 
+  sceneIndex: 0
+  hasCompleted: 0
+  isLocked: 1

@@ -1,9 +1,10 @@
+using System;
 using System.Collections;
 using SL;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class RulesOfGame : ServiceCustom, IRulesOfGame
+public class RulesOfGame : MonoBehaviour
 {
     [SerializeField] private Map map;
     [SerializeField] private Characters characters;
@@ -43,9 +44,13 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
         _seleccionDeFinDeJuego = seleccionDeFinDeJuego;
     }
 
-    protected override void CustomStart()
+    private void Start()
     {
-        base.CustomStart();
+        CustomStart();
+    }
+
+    protected void CustomStart()
+    {
         Debug.Log("RulesOfGame");
         _beforeToStart = this.tt().Pause().Add(() =>
         {
@@ -121,18 +126,19 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
             }
         }).Add(10).Add(() =>
         {
-            ServiceLocator.Instance.GetService<IMessages>().ShowRestartOrGoToHome("Que deseas hacer? Reiniciar o regresar al menu", () =>
-            {
-                //restart action
-                _seleccionoAlgo = true;
-                _seleccionDeFinDeJuego = 0;
-            }, () =>
-            {
-                //go to home action
-                _seleccionoAlgo = true;
-                _seleccionDeFinDeJuego = 1;
-            });
-        }).Wait(()=>_seleccionoAlgo).Add(5).Add(()=>
+            ServiceLocator.Instance.GetService<IMessages>().ShowRestartOrGoToHome(
+                "Que deseas hacer? Reiniciar o regresar al menu", () =>
+                {
+                    //restart action
+                    _seleccionoAlgo = true;
+                    _seleccionDeFinDeJuego = 0;
+                }, () =>
+                {
+                    //go to home action
+                    _seleccionoAlgo = true;
+                    _seleccionDeFinDeJuego = 1;
+                });
+        }).Wait(()=>_seleccionoAlgo).Add(1).Add(()=>
         {
             //mandarlo a la pantalla de inicio
             //reiniciar el nivel
@@ -140,11 +146,17 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
             {
                 case 0:
                     //reiniciar el nivel
-                    SceneManager.LoadScene(stagesInfo.SceneIndex);
+                    ServiceLocator.Instance.GetService<IFade>().In(() =>
+                    {
+                        SceneManager.LoadScene(stagesInfo.SceneIndex);
+                    });
                     break;
                 case 1:
                     //mandarlo a la pantalla de inicio
-                    SceneManager.LoadScene(stageHome.SceneIndex);
+                    ServiceLocator.Instance.GetService<IFade>().In(() =>
+                    {
+                        SceneManager.LoadScene(stageHome.SceneIndex);
+                    });
                     break;                
             }
         });
@@ -155,26 +167,5 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
             _canRun = true;
         };
         Debug.Log("RegisterService");
-    }
-
-    protected override bool Validation()
-    {
-        return FindObjectsOfType<RulesOfGame>().Length > 1;
-    }
-
-    protected override void RegisterService()
-    {
-        ServiceLocator.Instance.RegisterService<IRulesOfGame>(this);
-    }
-
-    protected override void RemoveService()
-    {
-        ServiceLocator.Instance.RemoveService<IRulesOfGame>();
-    }
-
-    public void Win()
-    {
-        _endGame = true;
-        _isWin = true;
     }
 }
