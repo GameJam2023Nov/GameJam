@@ -13,6 +13,7 @@ public class LoadingScenes : MonoBehaviour
             stageButton.Button.onClick.AddListener(() => ServiceLocator.Instance.GetService<IRulesOfGameService>().LoadScene(stageButton.StagesInfo));
         }
         
+        ServiceLocator.Instance.GetService<IFade>().Out();
         if (ServiceLocator.Instance.GetService<IRulesOfGameService>().HasCompletedAllLevels())
         {
             //script to all changes when the game is completed
@@ -24,10 +25,6 @@ public class LoadingScenes : MonoBehaviour
                     ServiceLocator.Instance.GetService<IRulesOfGameService>().LoadScene(creditScene);
                 });
             });
-        }
-        else
-        {
-            ServiceLocator.Instance.GetService<IFade>().Out();
         }
     }
 }
