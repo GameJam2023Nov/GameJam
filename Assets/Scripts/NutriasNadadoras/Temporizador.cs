@@ -24,4 +24,9 @@ internal class Temporizador : MonoBehaviour
             _isTimeOut = true;
         }
     }
+
+    public void ForceTimeOut()
+    {
+        _isTimeOut = true;
+    }
 }

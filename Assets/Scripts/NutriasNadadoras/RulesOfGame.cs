@@ -1,6 +1,7 @@
 using System.Collections;
 using SL;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class RulesOfGame : ServiceCustom, IRulesOfGame
 {
@@ -8,7 +9,7 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
     [SerializeField] private Characters characters;
     [SerializeField] private ColliderFinalPoint colliderFinalPoint;
     [SerializeField] private Temporizador temporizador;
-    [SerializeField] private StagesInfo stagesInfo;
+    [SerializeField] private StagesInfo stagesInfo, stageHome;
     private TeaTime _beforeToStart, _start, _game, _runNutria, _end;
     private bool _endGame;
     private bool _isWin;
@@ -52,6 +53,10 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
             //Configurar todos los componentes para empezar
             map.Configure();
             characters.Configure();
+            characters.onDeadAnyNutria += () =>
+            {
+                temporizador.ForceTimeOut();
+            };
         }).Add(5f).Add(() =>
         {
             _start.Play();
@@ -98,20 +103,36 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
         });
         _end = this.tt().Pause().Add(() =>
         {
+            //stop all systems
+            characters.FinishGame();
+        }).Add(() =>
+        {
             Debug.Log("end");
-            //evaluar si gano o perdio
             if (_isWin)
             {
                 //Mostrar mensaje de que gano
-                ServiceLocator.Instance.GetService<IMessages>().ShowMessage("Ganaste", 20f);
+                ServiceLocator.Instance.GetService<IMessages>().ShowMessage("Ganaste", 10);
                 ServiceLocator.Instance.GetService<IRulesOfGameService>().CompleteStage(stagesInfo);
             }
             else
             {
                 //Mostrar mensaje de que perdio
-                ServiceLocator.Instance.GetService<IMessages>().ShowMessage("Perdiste", 20f);
+                ServiceLocator.Instance.GetService<IMessages>().ShowMessage("Perdiste", 10);
             }
-        }).Wait(()=>_seleccionoAlgo).Add(()=>
+        }).Add(10).Add(() =>
+        {
+            ServiceLocator.Instance.GetService<IMessages>().ShowRestartOrGoToHome("Que deseas hacer? Reiniciar o regresar al menu", () =>
+            {
+                //restart action
+                _seleccionoAlgo = true;
+                _seleccionDeFinDeJuego = 0;
+            }, () =>
+            {
+                //go to home action
+                _seleccionoAlgo = true;
+                _seleccionDeFinDeJuego = 1;
+            });
+        }).Wait(()=>_seleccionoAlgo).Add(5).Add(()=>
         {
             //mandarlo a la pantalla de inicio
             //reiniciar el nivel
@@ -119,9 +140,11 @@ public class RulesOfGame : ServiceCustom, IRulesOfGame
             {
                 case 0:
                     //reiniciar el nivel
+                    SceneManager.LoadScene(stagesInfo.SceneIndex);
                     break;
                 case 1:
                     //mandarlo a la pantalla de inicio
+                    SceneManager.LoadScene(stageHome.SceneIndex);
                     break;                
             }
         });

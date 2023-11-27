@@ -9,6 +9,7 @@ public abstract class Nutria : MonoBehaviour
     [SerializeField] private Rigidbody rigidbody;
     [SerializeField] private AnimatorControllerCustom animatorControllerCustom;
     public Action<GameObject> onTouchFinalEarth;
+    public Action onDead;
     private bool _canMove;
     private Vector3 _targetPosition;
     private bool _moveToTarget;
@@ -106,6 +107,11 @@ public abstract class Nutria : MonoBehaviour
             onTouchFinalEarth?.Invoke(other.gameObject);
             _arriveToDestiny = true;
         }
+        if(other.gameObject.CompareTag("Petroleo"))
+        {
+            animatorControllerCustom.IsDead(true);
+            onDead?.Invoke();
+        }
     }
 
     private void OnTriggerExit(Collider other)
@@ -124,6 +130,11 @@ public abstract class Nutria : MonoBehaviour
             Debug.Log("Tierra Final");
             onTouchFinalEarth?.Invoke(other.gameObject);
             _arriveToDestiny = true;
+        }
+        if(other.gameObject.CompareTag("Petroleo"))
+        {
+            animatorControllerCustom.IsDead(true);
+            onDead?.Invoke();
         }
     }
 }

@@ -5,7 +5,7 @@ using Random = UnityEngine.Random;
 
 internal class Characters : MonoBehaviour
 {
-    public Action onCanRun;
+    public Action onCanRun, onDeadAnyNutria;
     [SerializeField] private GameObject nutriaPrefab;
     [SerializeField] private GameObject pointToSpawn, finalEarth;
     [SerializeField] private int countOfNutrias;
@@ -32,6 +32,11 @@ internal class Characters : MonoBehaviour
                 validationOfVictory.AddFinalDestiny(finalEarth);
                 validatorOfClick.CanSelectFinalEarth();
             };
+            nutria.onDead += () =>
+            {
+                Debug.Log("Dead");
+                onDeadAnyNutria?.Invoke();
+            };
             nutrias.Add(nutria);
         }
         selectorOfNutrias.Configure();
@@ -48,5 +53,10 @@ internal class Characters : MonoBehaviour
     public List<Nutria> GetNutrias()
     {
         return nutrias;
+    }
+
+    public void FinishGame()
+    {
+        selectorOfNutrias.StopGame();
     }
 }
