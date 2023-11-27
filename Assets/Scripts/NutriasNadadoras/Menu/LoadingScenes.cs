@@ -1,3 +1,4 @@
+using System.Collections;
 using SL;
 using UnityEngine;
 
@@ -12,8 +13,6 @@ public class LoadingScenes : MonoBehaviour
         {
             stageButton.Button.onClick.AddListener(() => ServiceLocator.Instance.GetService<IRulesOfGameService>().LoadScene(stageButton.StagesInfo));
         }
-        
-        ServiceLocator.Instance.GetService<IFade>().Out();
         if (ServiceLocator.Instance.GetService<IRulesOfGameService>().HasCompletedAllLevels())
         {
             //script to all changes when the game is completed
@@ -26,5 +25,13 @@ public class LoadingScenes : MonoBehaviour
                 });
             });
         }
+
+        StartCoroutine(FadeOut());
+    }
+
+    private IEnumerator FadeOut()
+    {
+        yield return new WaitForSeconds(1f);
+        ServiceLocator.Instance.GetService<IFade>().Out();
     }
 }
