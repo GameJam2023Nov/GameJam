@@ -98,4 +98,10 @@ public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
         }
         
     }
+
+    public void StopGame()
+    {
+        _canSelect = false;
+        ServiceLocator.Instance.GetService<ICursorService>().ShowMouse();
+    }
 }

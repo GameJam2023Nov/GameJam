@@ -11,10 +11,6 @@ jobs:
   build:
     name: Build Project
     runs-on: ubuntu-latest
-    # This stops builds that are in-progress once a new commit comes in
-    concurrency: 
-      group: unity-build
-      cancel-in-progress: true
     steps:
       # Checkout
       - name: Checkout repository
