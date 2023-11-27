@@ -34,6 +34,7 @@ Shader "Polyart/Dreamscape Water River"
 		_FlowMap("FlowMap", 2D) = "white" {}
 		_Speed("Speed", Vector) = (0,0,0,0)
 		_FlowSpeed("FlowSpeed", Float) = 1
+		_Oil("Oil", Float) = 0
 		_flowmap_outward_counterclockwise("flowmap_outward_counterclockwise", 2D) = "white" {}
 		_Flowoverrite("Flowoverrite", Range( 0 , 1)) = 0
 		_Texture0("Texture 0", 2D) = "white" {}
@@ -324,15 +325,16 @@ Shader "Polyart/Dreamscape Water River"
 			float4 _ColorDeep;
 			float2 _Speed;
 			float _WaveNormalIntensity;
+			float _Oil;
 			float _FlowSpeed;
 			float _Flowoverrite;
 			float _FoamCutoff;
 			float _FoamDepthFade;
 			float _RefractionDepth;
 			float _RefractionStrength;
-			float _FScale;
-			float _ColorDepthFade;
+			float _FoamScale;
 			float _Smoothness;
+			float _ColorDepthFade;
 			float _ReflectionsIntensity;
 			float _TurbulenceDistortionIntensity;
 			float _TurbulenceScale;
@@ -340,7 +342,7 @@ Shader "Polyart/Dreamscape Water River"
 			float _Size;
 			float _DisplaceStrength;
 			float _WaveTiling01;
-			float _FoamScale;
+			float _FScale;
 			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
@@ -857,8 +859,7 @@ Shader "Polyart/Dreamscape Water River"
 				float lerpResult283 = lerp( simplePerlin2D165 , simplePerlin2D282 , Timer230);
 				float2 temp_cast_7 = (lerpResult283).xx;
 				float2 lerpResult173 = lerp( texCoord172 , temp_cast_7 , float2( 0.1,0.1 ));
-				float mulTime289 = _TimeParameters.x * 0.005;
-				float temp_output_287_0 = (1.0 + (mulTime289 - 0.0) * (0.0 - 1.0) / (1.0 - 0.0));
+				float temp_output_287_0 = (1.0 + (_Oil - 0.0) * (0.0 - 1.0) / (1.0 - 0.0));
 				float smoothstepResult175 = smoothstep( temp_output_287_0 , ( temp_output_287_0 * 1.1 ) , lerpResult173.x);
 				float lerpResult177 = lerp( ( 1.0 - step( lerpResult173.x , temp_output_287_0 ) ) , smoothstepResult175 , 0.62);
 				float Oil_Mask159 = lerpResult177;
@@ -1158,15 +1159,16 @@ Shader "Polyart/Dreamscape Water River"
 			float4 _ColorDeep;
 			float2 _Speed;
 			float _WaveNormalIntensity;
+			float _Oil;
 			float _FlowSpeed;
 			float _Flowoverrite;
 			float _FoamCutoff;
 			float _FoamDepthFade;
 			float _RefractionDepth;
 			float _RefractionStrength;
-			float _FScale;
-			float _ColorDepthFade;
+			float _FoamScale;
 			float _Smoothness;
+			float _ColorDepthFade;
 			float _ReflectionsIntensity;
 			float _TurbulenceDistortionIntensity;
 			float _TurbulenceScale;
@@ -1174,7 +1176,7 @@ Shader "Polyart/Dreamscape Water River"
 			float _Size;
 			float _DisplaceStrength;
 			float _WaveTiling01;
-			float _FoamScale;
+			float _FScale;
 			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
@@ -1508,15 +1510,16 @@ Shader "Polyart/Dreamscape Water River"
 			float4 _ColorDeep;
 			float2 _Speed;
 			float _WaveNormalIntensity;
+			float _Oil;
 			float _FlowSpeed;
 			float _Flowoverrite;
 			float _FoamCutoff;
 			float _FoamDepthFade;
 			float _RefractionDepth;
 			float _RefractionStrength;
-			float _FScale;
-			float _ColorDepthFade;
+			float _FoamScale;
 			float _Smoothness;
+			float _ColorDepthFade;
 			float _ReflectionsIntensity;
 			float _TurbulenceDistortionIntensity;
 			float _TurbulenceScale;
@@ -1524,7 +1527,7 @@ Shader "Polyart/Dreamscape Water River"
 			float _Size;
 			float _DisplaceStrength;
 			float _WaveTiling01;
-			float _FoamScale;
+			float _FScale;
 			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
@@ -1841,15 +1844,16 @@ Shader "Polyart/Dreamscape Water River"
 			float4 _ColorDeep;
 			float2 _Speed;
 			float _WaveNormalIntensity;
+			float _Oil;
 			float _FlowSpeed;
 			float _Flowoverrite;
 			float _FoamCutoff;
 			float _FoamDepthFade;
 			float _RefractionDepth;
 			float _RefractionStrength;
-			float _FScale;
-			float _ColorDepthFade;
+			float _FoamScale;
 			float _Smoothness;
+			float _ColorDepthFade;
 			float _ReflectionsIntensity;
 			float _TurbulenceDistortionIntensity;
 			float _TurbulenceScale;
@@ -1857,7 +1861,7 @@ Shader "Polyart/Dreamscape Water River"
 			float _Size;
 			float _DisplaceStrength;
 			float _WaveTiling01;
-			float _FoamScale;
+			float _FScale;
 			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
@@ -2344,8 +2348,7 @@ Shader "Polyart/Dreamscape Water River"
 				float lerpResult283 = lerp( simplePerlin2D165 , simplePerlin2D282 , Timer230);
 				float2 temp_cast_7 = (lerpResult283).xx;
 				float2 lerpResult173 = lerp( texCoord172 , temp_cast_7 , float2( 0.1,0.1 ));
-				float mulTime289 = _TimeParameters.x * 0.005;
-				float temp_output_287_0 = (1.0 + (mulTime289 - 0.0) * (0.0 - 1.0) / (1.0 - 0.0));
+				float temp_output_287_0 = (1.0 + (_Oil - 0.0) * (0.0 - 1.0) / (1.0 - 0.0));
 				float smoothstepResult175 = smoothstep( temp_output_287_0 , ( temp_output_287_0 * 1.1 ) , lerpResult173.x);
 				float lerpResult177 = lerp( ( 1.0 - step( lerpResult173.x , temp_output_287_0 ) ) , smoothstepResult175 , 0.62);
 				float Oil_Mask159 = lerpResult177;
@@ -2458,15 +2461,16 @@ Shader "Polyart/Dreamscape Water River"
 			float4 _ColorDeep;
 			float2 _Speed;
 			float _WaveNormalIntensity;
+			float _Oil;
 			float _FlowSpeed;
 			float _Flowoverrite;
 			float _FoamCutoff;
 			float _FoamDepthFade;
 			float _RefractionDepth;
 			float _RefractionStrength;
-			float _FScale;
-			float _ColorDepthFade;
+			float _FoamScale;
 			float _Smoothness;
+			float _ColorDepthFade;
 			float _ReflectionsIntensity;
 			float _TurbulenceDistortionIntensity;
 			float _TurbulenceScale;
@@ -2474,7 +2478,7 @@ Shader "Polyart/Dreamscape Water River"
 			float _Size;
 			float _DisplaceStrength;
 			float _WaveTiling01;
-			float _FoamScale;
+			float _FScale;
 			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
@@ -2948,8 +2952,7 @@ Shader "Polyart/Dreamscape Water River"
 				float lerpResult283 = lerp( simplePerlin2D165 , simplePerlin2D282 , Timer230);
 				float2 temp_cast_7 = (lerpResult283).xx;
 				float2 lerpResult173 = lerp( texCoord172 , temp_cast_7 , float2( 0.1,0.1 ));
-				float mulTime289 = _TimeParameters.x * 0.005;
-				float temp_output_287_0 = (1.0 + (mulTime289 - 0.0) * (0.0 - 1.0) / (1.0 - 0.0));
+				float temp_output_287_0 = (1.0 + (_Oil - 0.0) * (0.0 - 1.0) / (1.0 - 0.0));
 				float smoothstepResult175 = smoothstep( temp_output_287_0 , ( temp_output_287_0 * 1.1 ) , lerpResult173.x);
 				float lerpResult177 = lerp( ( 1.0 - step( lerpResult173.x , temp_output_287_0 ) ) , smoothstepResult175 , 0.62);
 				float Oil_Mask159 = lerpResult177;
@@ -3057,15 +3060,16 @@ Shader "Polyart/Dreamscape Water River"
 			float4 _ColorDeep;
 			float2 _Speed;
 			float _WaveNormalIntensity;
+			float _Oil;
 			float _FlowSpeed;
 			float _Flowoverrite;
 			float _FoamCutoff;
 			float _FoamDepthFade;
 			float _RefractionDepth;
 			float _RefractionStrength;
-			float _FScale;
-			float _ColorDepthFade;
+			float _FoamScale;
 			float _Smoothness;
+			float _ColorDepthFade;
 			float _ReflectionsIntensity;
 			float _TurbulenceDistortionIntensity;
 			float _TurbulenceScale;
@@ -3073,7 +3077,7 @@ Shader "Polyart/Dreamscape Water River"
 			float _Size;
 			float _DisplaceStrength;
 			float _WaveTiling01;
-			float _FoamScale;
+			float _FScale;
 			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
@@ -3412,15 +3416,16 @@ Shader "Polyart/Dreamscape Water River"
 			float4 _ColorDeep;
 			float2 _Speed;
 			float _WaveNormalIntensity;
+			float _Oil;
 			float _FlowSpeed;
 			float _Flowoverrite;
 			float _FoamCutoff;
 			float _FoamDepthFade;
 			float _RefractionDepth;
 			float _RefractionStrength;
-			float _FScale;
-			float _ColorDepthFade;
+			float _FoamScale;
 			float _Smoothness;
+			float _ColorDepthFade;
 			float _ReflectionsIntensity;
 			float _TurbulenceDistortionIntensity;
 			float _TurbulenceScale;
@@ -3428,7 +3433,7 @@ Shader "Polyart/Dreamscape Water River"
 			float _Size;
 			float _DisplaceStrength;
 			float _WaveTiling01;
-			float _FoamScale;
+			float _FScale;
 			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
@@ -3699,15 +3704,16 @@ Shader "Polyart/Dreamscape Water River"
 			float4 _ColorDeep;
 			float2 _Speed;
 			float _WaveNormalIntensity;
+			float _Oil;
 			float _FlowSpeed;
 			float _Flowoverrite;
 			float _FoamCutoff;
 			float _FoamDepthFade;
 			float _RefractionDepth;
 			float _RefractionStrength;
-			float _FScale;
-			float _ColorDepthFade;
+			float _FoamScale;
 			float _Smoothness;
+			float _ColorDepthFade;
 			float _ReflectionsIntensity;
 			float _TurbulenceDistortionIntensity;
 			float _TurbulenceScale;
@@ -3715,7 +3721,7 @@ Shader "Polyart/Dreamscape Water River"
 			float _Size;
 			float _DisplaceStrength;
 			float _WaveTiling01;
-			float _FoamScale;
+			float _FScale;
 			float _Opacity;
 			#ifdef ASE_TRANSMISSION
 				float _TransmissionShadow;
@@ -4021,7 +4027,7 @@ Node;AmplifyShaderEditor.SimpleMultiplyOpNode;151;-2874.054,-768.7349;Inherit;Fa
 Node;AmplifyShaderEditor.Vector2Node;149;-3956.415,1247.984;Inherit;False;Property;_Speed;Speed;30;0;Create;True;0;0;0;False;0;False;0,0;0,0;0;3;FLOAT2;0;FLOAT;1;FLOAT;2
 Node;AmplifyShaderEditor.GetLocalVarNode;153;-3214.969,-621.9073;Inherit;False;152;Speed;1;0;OBJECT;;False;1;FLOAT2;0
 Node;AmplifyShaderEditor.ColorNode;27;-559.1514,1360.318;Inherit;False;Property;_FoamColor;Foam Color;8;0;Create;True;0;0;0;False;1;Header(FOAM);False;1,1,1,1;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.CommentaryNode;154;-4922.988,2381.187;Inherit;False;2666.244;859.5652;;22;287;158;165;173;283;282;284;281;182;179;172;280;181;159;177;174;180;178;175;157;164;289;OIL;0.5377358,0.5377358,0.5377358,1;0;0
+Node;AmplifyShaderEditor.CommentaryNode;154;-4922.988,2381.187;Inherit;False;2666.244;859.5652;;21;287;158;165;173;283;282;284;281;182;179;172;280;181;159;177;174;180;178;175;157;164;OIL;0.5377358,0.5377358,0.5377358,1;0;0
 Node;AmplifyShaderEditor.GetLocalVarNode;25;-554.4624,1533.403;Inherit;False;15;vFoam;1;0;OBJECT;;False;1;FLOAT;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;28;-338.2072,1454.519;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.RangedFloatNode;49;-1373.582,1374.788;Inherit;False;Property;_RefractionDepth;Refraction Depth;15;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
@@ -4109,8 +4115,7 @@ Node;AmplifyShaderEditor.SimpleMultiplyOpNode;286;-1216.916,2476.987;Inherit;Fal
 Node;AmplifyShaderEditor.RangedFloatNode;285;-1447.249,2398.794;Inherit;False;Property;_Flowoverrite;Flowoverrite;34;0;Create;True;0;0;0;False;0;False;0;0;0;1;0;1;FLOAT;0
 Node;AmplifyShaderEditor.SimpleTimeNode;182;-4392.727,3004.091;Inherit;False;1;0;FLOAT;1;False;1;FLOAT;0
 Node;AmplifyShaderEditor.TFHCRemapNode;287;-3749.037,2760.002;Inherit;False;5;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;1;False;3;FLOAT;1;False;4;FLOAT;0;False;1;FLOAT;0
-Node;AmplifyShaderEditor.RangedFloatNode;158;-3995.064,2716.812;Inherit;False;Property;_Oil;Oil;32;0;Create;True;0;0;0;False;0;False;0.14;0;0;0;0;1;FLOAT;0
-Node;AmplifyShaderEditor.SimpleTimeNode;289;-3974.675,2789.947;Inherit;False;1;0;FLOAT;0.005;False;1;FLOAT;0
+Node;AmplifyShaderEditor.RangedFloatNode;158;-4046.064,2739.812;Inherit;False;Property;_Oil;Oil;32;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
 WireConnection;66;0;64;0
 WireConnection;67;0;66;0
 WireConnection;67;1;65;0
@@ -4273,6 +4278,6 @@ WireConnection;270;0;246;0
 WireConnection;270;1;63;0
 WireConnection;270;2;285;0
 WireConnection;286;0;285;0
-WireConnection;287;0;289;0
+WireConnection;287;0;158;0
 ASEEND*/
-//CHKSM=0DB0322D13891A04DD0AF3A377AF7107830828C4
+//CHKSM=0203F6A34A4EF468BDC257944F2CAE1C5667366B
