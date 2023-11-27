@@ -34,7 +34,7 @@ Shader "Polyart/Dreamscape Water River"
 		_FlowMap("FlowMap", 2D) = "white" {}
 		_Speed("Speed", Vector) = (0,0,0,0)
 		_FlowSpeed("FlowSpeed", Float) = 1
-		_Oil("Oil", Float) = 0.14
+		_Oil("Oil", Float) = 0
 		_flowmap_outward_counterclockwise("flowmap_outward_counterclockwise", 2D) = "white" {}
 		_Flowoverrite("Flowoverrite", Range( 0 , 1)) = 0
 		_Texture0("Texture 0", 2D) = "white" {}
@@ -4027,7 +4027,7 @@ Node;AmplifyShaderEditor.SimpleMultiplyOpNode;151;-2874.054,-768.7349;Inherit;Fa
 Node;AmplifyShaderEditor.Vector2Node;149;-3956.415,1247.984;Inherit;False;Property;_Speed;Speed;30;0;Create;True;0;0;0;False;0;False;0,0;0,0;0;3;FLOAT2;0;FLOAT;1;FLOAT;2
 Node;AmplifyShaderEditor.GetLocalVarNode;153;-3214.969,-621.9073;Inherit;False;152;Speed;1;0;OBJECT;;False;1;FLOAT2;0
 Node;AmplifyShaderEditor.ColorNode;27;-559.1514,1360.318;Inherit;False;Property;_FoamColor;Foam Color;8;0;Create;True;0;0;0;False;1;Header(FOAM);False;1,1,1,1;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.CommentaryNode;154;-4432.208,2381.187;Inherit;False;2175.464;772.7808;;17;178;173;165;158;180;179;175;177;157;174;164;159;181;182;282;283;287;OIL;0.5377358,0.5377358,0.5377358,1;0;0
+Node;AmplifyShaderEditor.CommentaryNode;154;-4922.988,2381.187;Inherit;False;2666.244;859.5652;;21;287;158;165;173;283;282;284;281;182;179;172;280;181;159;177;174;180;178;175;157;164;OIL;0.5377358,0.5377358,0.5377358,1;0;0
 Node;AmplifyShaderEditor.GetLocalVarNode;25;-554.4624,1533.403;Inherit;False;15;vFoam;1;0;OBJECT;;False;1;FLOAT;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;28;-338.2072,1454.519;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT;0;False;1;FLOAT;0
 Node;AmplifyShaderEditor.RangedFloatNode;49;-1373.582,1374.788;Inherit;False;Property;_RefractionDepth;Refraction Depth;15;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
@@ -4096,7 +4096,6 @@ Node;AmplifyShaderEditor.VoronoiNode;181;-4135.487,2910.339;Inherit;False;0;0;1;
 Node;AmplifyShaderEditor.GetLocalVarNode;280;-4884.251,2633.838;Inherit;True;228;UV1;1;0;OBJECT;;False;1;FLOAT2;0
 Node;AmplifyShaderEditor.TextureCoordinatesNode;172;-4688.397,2416.367;Inherit;True;0;-1;2;3;2;SAMPLER2D;;False;0;FLOAT2;1,1;False;1;FLOAT2;0,0;False;5;FLOAT2;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
 Node;AmplifyShaderEditor.GradientNode;179;-4401.707,3103.708;Inherit;False;0;3;2;0,0,0,0.0137789;0.1743729,0.1792453,0,0.523537;0,0,0,1;1,0.1470665;1,1;0;1;OBJECT;0
-Node;AmplifyShaderEditor.SimpleTimeNode;182;-4387.727,2984.091;Inherit;False;1;0;FLOAT;1;False;1;FLOAT;0
 Node;AmplifyShaderEditor.GetLocalVarNode;281;-4885.898,2870.817;Inherit;True;229;UV2;1;0;OBJECT;;False;1;FLOAT2;0
 Node;AmplifyShaderEditor.GetLocalVarNode;284;-4725.839,3005.24;Inherit;True;230;Timer;1;0;OBJECT;;False;1;FLOAT;0
 Node;AmplifyShaderEditor.LerpOp;211;-827.0496,2752.931;Inherit;True;3;0;FLOAT2;0,0;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;1;FLOAT2;0
@@ -4114,8 +4113,9 @@ Node;AmplifyShaderEditor.GetLocalVarNode;63;-362.2217,-121.8228;Inherit;False;62
 Node;AmplifyShaderEditor.BlendOpsNode;270;-87.64624,-143.4054;Inherit;False;Overlay;True;3;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;2;FLOAT;0;False;1;COLOR;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;286;-1216.916,2476.987;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT;0.1;False;1;FLOAT;0
 Node;AmplifyShaderEditor.RangedFloatNode;285;-1447.249,2398.794;Inherit;False;Property;_Flowoverrite;Flowoverrite;34;0;Create;True;0;0;0;False;0;False;0;0;0;1;0;1;FLOAT;0
-Node;AmplifyShaderEditor.RangedFloatNode;158;-3986.064,2766.812;Inherit;False;Property;_Oil;Oil;32;0;Create;True;0;0;0;False;0;False;0.14;0;0;0;0;1;FLOAT;0
-Node;AmplifyShaderEditor.TFHCRemapNode;287;-3753.037,2786.002;Inherit;False;5;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;1;False;3;FLOAT;1;False;4;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.SimpleTimeNode;182;-4392.727,3004.091;Inherit;False;1;0;FLOAT;1;False;1;FLOAT;0
+Node;AmplifyShaderEditor.TFHCRemapNode;287;-3749.037,2760.002;Inherit;False;5;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;1;False;3;FLOAT;1;False;4;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.RangedFloatNode;158;-4046.064,2739.812;Inherit;False;Property;_Oil;Oil;32;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
 WireConnection;66;0;64;0
 WireConnection;67;0;66;0
 WireConnection;67;1;65;0
@@ -4280,4 +4280,4 @@ WireConnection;270;2;285;0
 WireConnection;286;0;285;0
 WireConnection;287;0;158;0
 ASEEND*/
-//CHKSM=44FFCC90CE9C77327B49C4A70EC443AA681ABB93
+//CHKSM=0203F6A34A4EF468BDC257944F2CAE1C5667366B

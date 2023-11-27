@@ -11,6 +11,7 @@ public class ValidatorOfClick : MonoBehaviour
     //Is into the water
     //Is close to the border
     [SerializeField] private bool canMove;
+    [SerializeField] private Camera camera;
     private bool _canEvaluate;
     private ISelectorOfNutria _selectorOfNutria;
     private IInputCustom _inputCustom;
@@ -41,7 +42,7 @@ public class ValidatorOfClick : MonoBehaviour
     private void Update()
     {
         if(!_canEvaluate) return;
-        var ray = Camera.main.ScreenPointToRay(_inputCustom.GetTouchPosition());
+        var ray = camera.ScreenPointToRay(_inputCustom.GetTouchPosition());
         if (Physics.Raycast(ray, out var hit))
         {
             SphereCastAroundPoint(hit.point, radius);
@@ -56,7 +57,7 @@ public class ValidatorOfClick : MonoBehaviour
     private void OnDrawGizmos()
     {
         if(!_canEvaluate) return;
-        var ray = Camera.main.ScreenPointToRay(_inputCustom.GetTouchPosition());
+        var ray = camera.ScreenPointToRay(_inputCustom.GetTouchPosition());
         if (Physics.Raycast(ray, out var hit))
         {
             Gizmos.color = Color.red;
@@ -90,7 +91,7 @@ public class ValidatorOfClick : MonoBehaviour
                 {
                     if (hit.collider.gameObject.CompareTag("TierraFinal"))
                     {
-                        Debug.Log("Tierra Final");
+                        //Debug.Log("Tierra Final");
                         CanMoveP();
                         _anchorPoint = hit.point;
                         return;

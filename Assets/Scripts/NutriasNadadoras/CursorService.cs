@@ -58,6 +58,11 @@ public class CursorService : ServiceCustom, ICursorService
         }
     }
 
+    public void ShowMouse()
+    {
+        Cursor.visible = true;
+    }
+
     private void Update()
     {
         cursor.transform.position = ServiceLocator.Instance.GetService<IInputCustom>().GetTouchPosition() + offset;

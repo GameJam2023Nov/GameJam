@@ -1,4 +1,3 @@
-using System;
 using SL;
 using UnityEngine;
 
@@ -8,15 +7,14 @@ public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
     [SerializeField] private LayerMask layerMaskNutria, layerMaskMap;
     [SerializeField] private Nutria _selectedNutria;
     [SerializeField] private ValidatorOfClick validatorOfClick;
+    [SerializeField] private Camera camera;
     private IInputCustom _inputCustom;
     private bool _canSelect;
-    private Camera _camera;
     private bool _canEvaluate;
     
     public void Configure()
     {
         _inputCustom = ServiceLocator.Instance.GetService<IInputCustom>();
-        _camera = Camera.main;
         _canSelect = true;
         _inputCustom.OnActionTouch += SelectNutria;
         _inputCustom.OnStartTouch += OnStartTouch;
@@ -31,7 +29,7 @@ public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
     private void FixedUpdate()
     {
         if(!_canSelect) return;
-        var ray = _camera.ScreenPointToRay(_inputCustom.GetTouchPosition());
+        var ray = camera.ScreenPointToRay(_inputCustom.GetTouchPosition());
         if (Physics.Raycast(ray, out var hit, Mathf.Infinity, layerMaskNutria) && hit.collider.TryGetComponent<ColliderNutria>(out var colliderNutria))
         {
             if (!colliderNutria.Nutria.CanSelected())
@@ -49,10 +47,30 @@ public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
     private void SelectNutria()
     {
         if(!_canSelect) return;
-        var ray = _camera.ScreenPointToRay(_inputCustom.GetTouchPosition());
+        var ray = camera.ScreenPointToRay(_inputCustom.GetTouchPosition());
         if (_selectedNutria == null)
         {
-            if (Physics.Raycast(ray, out var hit, Mathf.Infinity, layerMaskNutria) && hit.collider.TryGetComponent<ColliderNutria>(out var colliderNutria))
+            var results = Physics.RaycastAll(ray, Mathf.Infinity, layerMaskNutria);
+            foreach (var hit in results)
+            {
+                if (hit.collider.TryGetComponent<ColliderNutria>(out var colliderNutria))
+                {
+                    if (!colliderNutria.Nutria.CanSelected())
+                    {
+                        if (validatorOfClick.CanRelease())
+                        {
+                            validationOfVictory.SendNutriaToDestiny(colliderNutria.Nutria, hit.point, validatorOfClick.GetAnchorPoint());
+                        }
+                        Debug.Log("No se puede seleccionar y debe ser liberado");
+                        return;
+                    }
+                    ServiceLocator.Instance.GetService<ICursorService>().StateOfCursor(true);
+                    validatorOfClick.Evaluate();
+                    _selectedNutria = colliderNutria.Nutria;
+                    return;
+                }
+            }
+            /*if (Physics.Raycast(ray, out var hit, Mathf.Infinity, layerMaskNutria) && hit.collider.TryGetComponent<ColliderNutria>(out var colliderNutria))
             {
                 if(!colliderNutria.Nutria.CanSelected())
                 {
@@ -66,7 +84,7 @@ public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
                 ServiceLocator.Instance.GetService<ICursorService>().StateOfCursor(true);
                 validatorOfClick.Evaluate();
                 _selectedNutria = colliderNutria.Nutria;
-            }
+            }*/
         }
         else if (_selectedNutria != null)
         {
@@ -79,5 +97,11 @@ public class SelectorOfNutria : MonoBehaviour, ISelectorOfNutria
             ServiceLocator.Instance.GetService<ICursorService>().StateOfCursor(false);
         }
         
+    }
+
+    public void StopGame()
+    {
+        _canSelect = false;
+        ServiceLocator.Instance.GetService<ICursorService>().ShowMouse();
     }
 }
