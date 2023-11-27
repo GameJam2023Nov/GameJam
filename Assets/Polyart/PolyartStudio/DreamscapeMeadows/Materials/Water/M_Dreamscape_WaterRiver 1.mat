@@ -85,7 +85,7 @@ Material:
     - _FoamDepthFade: 1.31
     - _FoamScale: 15.94
     - _FoamSpeed: 1
-    - _Oil: 0
+    - _Oil: 1
     - _Opacity: 1
     - _QueueControl: 0
     - _QueueOffset: 0
