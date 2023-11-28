@@ -2583,7 +2583,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   credits: {fileID: 1015864550}
   speed: 50
-  timeToWait: 1
+  timeToWait: 10
   speedIncrease: 3
 --- !u!4 &1158353728
 Transform:
