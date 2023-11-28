@@ -2265,7 +2265,7 @@ MonoBehaviour:
   petroleo: {fileID: 433830033}
   pointToStart: {fileID: 1469497258}
   pointToEnd: {fileID: 1460933234}
-  timeToComplete: 300
+  timeToComplete: 180
   waterMaterial: {fileID: 2100000, guid: 2cdcf394bea397c419579e116760e12f, type: 2}
 --- !u!4 &1892855780
 Transform:
