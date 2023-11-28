@@ -6,6 +6,7 @@ public class LoadingScenes : MonoBehaviour
 {
     [SerializeField] private StageButton[] stageButtons;
     [SerializeField] private StagesInfo creditScene;
+    [SerializeField] private Sprite stageCompleted;
 
     private void Start()
     {
