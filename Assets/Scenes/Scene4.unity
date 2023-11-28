@@ -1692,7 +1692,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4457f5b2ef064f50b067d916f89306af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeToFinish: 240
+  timeToFinish: 300
 --- !u!1001 &1462749913
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2307,7 +2307,7 @@ MonoBehaviour:
   petroleo: {fileID: 433830033}
   pointToStart: {fileID: 580707443}
   pointToEnd: {fileID: 74567355}
-  timeToComplete: 300
+  timeToComplete: 180
   waterMaterial: {fileID: 2100000, guid: 2cdcf394bea397c419579e116760e12f, type: 2}
 --- !u!4 &1892855780
 Transform:
